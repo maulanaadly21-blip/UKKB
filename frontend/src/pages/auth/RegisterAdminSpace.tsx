@@ -2,7 +2,7 @@ import React, { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
-import { User, Lock, Phone, Store, ArrowRight } from 'lucide-react';
+import { User, Lock, Phone, Store, ArrowRight, ShieldCheck } from 'lucide-react';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
@@ -24,17 +24,17 @@ const RegisterAdminSpace: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = {
-        ...formData,
-        nama: formData.nama_pemilik || formData.username,
-        email: formData.username,
-        no_hp: formData.telp
-      };
-      await registerAdminSpace(payload);
-      showSuccess(`Pendaftaran Admin Space berhasil! Selamat datang di Panel Pengelola.`);
+      await registerAdminSpace({
+        username: formData.username.trim(),
+        password: formData.password,
+        nama_coworking: formData.nama_coworking,
+        nama_pemilik: formData.nama_pemilik,
+        telp: formData.telp
+      });
+      showSuccess('Pendaftaran Pengelola Coworking Space berhasil! Selamat datang di Panel Admin.');
       navigate('/admin/dashboard');
     } catch (err: any) {
-      showError(err.message || 'Pendaftaran Admin Space gagal. Periksa kembali data.');
+      showError(err.message || 'Pendaftaran Admin Space gagal. Periksa kembali kelengkapan data.');
     } finally {
       setLoading(false);
     }
@@ -47,24 +47,24 @@ const RegisterAdminSpace: React.FC = () => {
           <Link to="/" className="inline-flex items-center gap-2 group mb-2">
             <img 
               src="/logo-transparent.png" 
-              alt="SmartSpace Logo" 
+              alt="Logo" 
               className="w-14 h-14 object-contain group-hover:scale-105 transition-transform duration-200" 
             />
           </Link>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Daftarkan Coworking Space Anda</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Daftar Admin Pengelola Space</h2>
           <p className="text-xs text-slate-500">
-            Daftar pengelola lokasi coworking space (UKK Paket B)
+            Kelola lokasi coworking, meja kerja, meeting room, dan laporan transaksi
           </p>
         </div>
 
         <Card className="p-8 shadow-soft-lg">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Username Admin Space"
+              label="Username Admin"
               required
               name="username"
               autoComplete="username"
-              placeholder="e.g. admin_space1"
+              placeholder="e.g. admin_moklet"
               icon={User}
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -76,7 +76,7 @@ const RegisterAdminSpace: React.FC = () => {
               required
               name="password"
               autoComplete="new-password"
-              placeholder="Minimal 6 karakter (e.g. Admin123!)"
+              placeholder="Minimal 6 karakter"
               icon={Lock}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -86,7 +86,7 @@ const RegisterAdminSpace: React.FC = () => {
               label="Nama Coworking Space / Branding"
               required
               name="nama_coworking"
-              placeholder="e.g. Moklet Hub Coworking"
+              placeholder="e.g. Moklet Hub Coworking Space"
               icon={Store}
               value={formData.nama_coworking}
               onChange={(e) => setFormData({ ...formData, nama_coworking: e.target.value })}
@@ -103,26 +103,26 @@ const RegisterAdminSpace: React.FC = () => {
             />
 
             <Input
-              label="Nomor Kontak / Telepon Pengelola"
+              label="Nomor Telepon Kontak Resmi"
               type="tel"
               required
               name="telp"
               autoComplete="tel"
-              placeholder="e.g. 081298765432"
+              placeholder="081298765432"
               icon={Phone}
               value={formData.telp}
               onChange={(e) => setFormData({ ...formData, telp: e.target.value })}
             />
 
-            <Button type="submit" variant="secondary" fullWidth loading={loading} icon={ArrowRight}>
-              Daftar & Buka Panel Admin Space
+            <Button type="submit" variant="primary" fullWidth loading={loading} icon={ArrowRight}>
+              Daftar & Buka Panel Admin
             </Button>
           </form>
         </Card>
 
         <div className="text-center text-xs text-slate-500">
-          Sudah terdaftar sebagai pengelola?{' '}
-          <Link to="/login" className="font-bold text-slate-900 hover:underline">
+          Sudah punya akun pengelola?{' '}
+          <Link to="/login" className="font-bold text-[#0F382C] hover:underline">
             Masuk Sesi Admin
           </Link>
         </div>

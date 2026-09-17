@@ -7,7 +7,7 @@ import StatusBadge from '../../components/admin/StatusBadge';
 import CheckInScanner from '../../components/admin/CheckInScanner';
 import api from '../../api/axios';
 import { useNotification } from '../../context/NotificationContext';
-import { CalendarCheck, QrCode, Search, CheckCircle, ArrowRight } from 'lucide-react';
+import { CalendarCheck, QrCode, Search, CheckCircle, ArrowRight, Ban, Filter } from 'lucide-react';
 import { Reservation } from '../../types';
 
 const ManageReservationsPage: React.FC = () => {
@@ -27,7 +27,7 @@ const ManageReservationsPage: React.FC = () => {
       }
       const res = await api.get('/admin/reservasi', { params });
       if (res.data && (res.data.status || res.data.statusCode === 200)) {
-        setReservations(res.data.data);
+        setReservations(res.data.data || []);
       }
     } catch (err) {
       console.error('Failed to fetch admin reservations:', err);
@@ -51,14 +51,16 @@ const ManageReservationsPage: React.FC = () => {
       if (res.data && (res.data.status || res.data.statusCode === 200)) {
         showSuccess('Check-in member berhasil! Status reservasi aktif.');
         fetchReservations();
+      } else {
+        throw new Error();
       }
-    } catch (err: any) {
+    } catch {
       try {
         await api.patch(`/admin/reservasi/${id}/status`, { status: 'aktif' });
         showSuccess('Check-in member berhasil (Status: aktif)');
         fetchReservations();
       } catch (err2: any) {
-        showError(err.response?.data?.message || 'Gagal proses check-in');
+        showError(err2.response?.data?.message || 'Gagal proses check-in');
       }
     }
   };
@@ -67,16 +69,18 @@ const ManageReservationsPage: React.FC = () => {
     try {
       const res = await api.post(`/admin/reservasi/${id}/check-out`);
       if (res.data && (res.data.status || res.data.statusCode === 200)) {
-        showSuccess('Check-out member berhasil! Reservasi selesai.');
+        showSuccess('Check-out member berhasil! Status reservasi selesai.');
         fetchReservations();
+      } else {
+        throw new Error();
       }
-    } catch (err: any) {
+    } catch {
       try {
         await api.patch(`/admin/reservasi/${id}/status`, { status: 'selesai' });
         showSuccess('Check-out member berhasil (Status: selesai)');
         fetchReservations();
       } catch (err2: any) {
-        showError(err.response?.data?.message || 'Gagal proses check-out');
+        showError(err2.response?.data?.message || 'Gagal proses check-out');
       }
     }
   };
@@ -110,14 +114,19 @@ const ManageReservationsPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-              <CalendarCheck className="w-6 h-6 text-emerald-700" /> Transaksi Reservasi & Check-In/Out
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0F382C] block">
+              OPERASIONAL RESERVASI
+            </span>
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <CalendarCheck className="w-6 h-6 text-[#0F382C]" /> Reservasi Pelanggan & Check-In
             </h1>
-            <p className="text-xs text-slate-500">Verifikasi kedatangan pelanggan dan update status pemesanan (UKK Paket B)</p>
+            <p className="text-xs text-slate-500">
+              Konfirmasi pesanan, check-in kedatangan, check-out selesai, dan pembatalan
+            </p>
           </div>
 
           <Button variant="primary" icon={QrCode} onClick={() => setIsScannerOpen(true)}>
-            Buka Quick QR Scanner
+            Quick QR Scanner
           </Button>
         </div>
 
@@ -125,7 +134,7 @@ const ManageReservationsPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-3">
           <form onSubmit={handleSearchSubmit} className="flex-1 flex gap-2">
             <Input
-              placeholder="Cari Berdasarkan Kode Booking, Nama Member, atau Space..."
+              placeholder="Cari berdasarkan kode booking, nama member, atau space..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               icon={Search}
@@ -142,8 +151,8 @@ const ManageReservationsPage: React.FC = () => {
               { value: 'all', label: 'Semua Status' },
               { value: 'belum_dikonfirm', label: 'Belum Dikonfirmasi' },
               { value: 'disetujui', label: 'Disetujui' },
-              { value: 'aktif', label: 'Aktif (Checked In)' },
-              { value: 'selesai', label: 'Selesai (Checked Out)' },
+              { value: 'aktif', label: 'Aktif (Checked-In)' },
+              { value: 'selesai', label: 'Selesai (Checked-Out)' },
               { value: 'dibatalkan', label: 'Dibatalkan' }
             ]}
           />
@@ -156,81 +165,101 @@ const ManageReservationsPage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-soft">
+          <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-2xs">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
                 <tr>
                   <th className="px-4 py-3">Kode Booking</th>
                   <th className="px-4 py-3">Pelanggan / Member</th>
                   <th className="px-4 py-3">Space Ruangan</th>
-                  <th className="px-4 py-3">Tanggal & Jam</th>
+                  <th className="px-4 py-3">Jadwal Penggunaan</th>
                   <th className="px-4 py-3">Total Bayar</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Aksi Operasional</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
-                {filteredReservations.map((r: any) => (
-                  <tr key={r.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-mono font-bold text-emerald-800">{r.kode_booking || r.kode_reservasi}</td>
-                    <td className="px-4 py-3">
-                      <span className="font-bold text-slate-900 block">{r.member?.nama_member || r.nama_pemesan || `Member #${r.id_member}`}</span>
-                      <span className="text-[10px] text-slate-400">{r.member?.telp || r.no_hp || '-'}</span>
-                    </td>
-                    <td className="px-4 py-3 font-bold text-slate-800">{r.space?.nama_space || r.nama_ruangan || `Space #${r.id_space}`}</td>
-                    <td className="px-4 py-3">
-                      {r.tanggal_reservasi} <br />
-                      <span className="text-slate-500">{r.jam_mulai} - {r.jam_selesai || `${parseInt(r.jam_mulai)+r.durasi_jam}:00`} ({r.durasi_jam} jam)</span>
-                    </td>
-                    <td className="px-4 py-3 font-bold text-slate-900">
-                      Rp {r.total_bayar?.toLocaleString('id-ID')}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={r.status} />
-                    </td>
-                    <td className="px-4 py-3 text-right space-x-1">
-                      {r.status === 'belum_dikonfirm' && (
-                        <Button
-                          variant="outline"
-                          size="xs"
-                          onClick={() => handleUpdateStatus(r.id, 'disetujui')}
-                        >
-                          Setujui
-                        </Button>
-                      )}
-                      {(r.status === 'disetujui' || r.status === 'belum_dikonfirm') && (
-                        <Button
-                          variant="primary"
-                          size="xs"
-                          icon={CheckCircle}
-                          onClick={() => handleCheckIn(r.id)}
-                        >
-                          Check-In
-                        </Button>
-                      )}
-                      {r.status === 'aktif' && (
-                        <Button
-                          variant="secondary"
-                          size="xs"
-                          icon={ArrowRight}
-                          onClick={() => handleCheckOut(r.id)}
-                        >
-                          Check-Out
-                        </Button>
-                      )}
-                      {r.status !== 'selesai' && r.status !== 'dibatalkan' && (
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={() => handleUpdateStatus(r.id, 'dibatalkan')}
-                          className="text-rose-600 hover:bg-rose-50"
-                        >
-                          Batal
-                        </Button>
-                      )}
+                {filteredReservations.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                      Tidak ada transaksi reservasi yang sesuai dengan filter.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredReservations.map((r: any) => (
+                    <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-[#0F382C]">
+                        {r.kode_booking || r.kode_reservasi || `#${r.id}`}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-slate-900 block">
+                          {r.member?.nama_member || r.nama_pemesan || `Member #${r.id_member}`}
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          {r.member?.telp || r.no_hp || '-'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-slate-800">
+                        {r.space?.nama_space || r.nama_ruangan || `Space #${r.id_space}`}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-semibold text-slate-900">{r.tanggal_reservasi}</span>
+                        <br />
+                        <span className="text-slate-500 text-[11px]">
+                          {r.jam_mulai} - {r.jam_selesai || `${parseInt(r.jam_mulai)+r.durasi_jam}:00`} ({r.durasi_jam} jam)
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-extrabold text-slate-900">
+                        Rp {r.total_bayar?.toLocaleString('id-ID')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={r.status} />
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
+                        {r.status === 'belum_dikonfirm' && (
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            onClick={() => handleUpdateStatus(r.id, 'disetujui')}
+                          >
+                            Setujui
+                          </Button>
+                        )}
+                        {(r.status === 'disetujui' || r.status === 'belum_dikonfirm') && (
+                          <Button
+                            variant="primary"
+                            size="xs"
+                            icon={CheckCircle}
+                            onClick={() => handleCheckIn(r.id)}
+                          >
+                            Check-In
+                          </Button>
+                        )}
+                        {r.status === 'aktif' && (
+                          <Button
+                            variant="secondary"
+                            size="xs"
+                            icon={ArrowRight}
+                            onClick={() => handleCheckOut(r.id)}
+                          >
+                            Check-Out
+                          </Button>
+                        )}
+                        {r.status !== 'selesai' && r.status !== 'dibatalkan' && (
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            icon={Ban}
+                            onClick={() => handleUpdateStatus(r.id, 'dibatalkan')}
+                            className="text-rose-600 hover:bg-rose-50"
+                          >
+                            Batal
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -240,8 +269,8 @@ const ManageReservationsPage: React.FC = () => {
       <CheckInScanner
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
-        onCheckIn={(id) => handleCheckIn(id)}
-        onCheckOut={(id) => handleCheckOut(id)}
+        onCheckIn={handleCheckIn}
+        onCheckOut={handleCheckOut}
         reservations={reservations}
       />
     </AdminLayout>

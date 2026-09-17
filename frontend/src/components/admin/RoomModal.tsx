@@ -6,6 +6,7 @@ import Button from '../common/Button';
 import api from '../../api/axios';
 import { Upload, Trash2, Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Space } from '../../types';
+import { getImageUrl } from '../../utils/image';
 
 interface RoomModalProps {
   isOpen: boolean;
@@ -58,15 +59,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ isOpen, onClose, onSave, room = n
 
   const getPreviewUrl = () => {
     if (!formData.foto) return null;
-    if (
-      formData.foto.startsWith('http://') ||
-      formData.foto.startsWith('https://') ||
-      formData.foto.startsWith('data:') ||
-      formData.foto.startsWith('blob:')
-    ) {
-      return formData.foto;
-    }
-    return `http://localhost:5001/uploads/spaces/${formData.foto}`;
+    return getImageUrl(formData.foto, 'spaces');
   };
 
   const handleFileUpload = async (file: File) => {

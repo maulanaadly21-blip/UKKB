@@ -7,9 +7,10 @@ interface StatusBadgeProps {
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status = 'pending' }) => {
   const map: Record<string, { label: string; variant: 'amber' | 'teal' | 'emerald' | 'indigo' | 'rose' | 'slate' }> = {
-    pending: { label: 'Pending Payment', variant: 'amber' },
-    belum_dikonfirm: { label: 'Pending Payment', variant: 'amber' },
-    dikonfirmasi: { label: 'Dikonfirmasi', variant: 'teal' },
+    pending: { label: 'Belum Dikonfirmasi', variant: 'amber' },
+    belum_dikonfirm: { label: 'Belum Dikonfirmasi', variant: 'amber' },
+    disetujui: { label: 'Disetujui', variant: 'teal' },
+    dikonfirmasi: { label: 'Disetujui', variant: 'teal' },
     aktif: { label: 'Aktif (Checked In)', variant: 'emerald' },
     selesai: { label: 'Selesai (Checked Out)', variant: 'indigo' },
     dibatalkan: { label: 'Dibatalkan', variant: 'rose' }

@@ -27,10 +27,14 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (!searchCode.trim()) return;
+    const query = searchCode.trim().toLowerCase();
     const found = reservations.find(
       (r) =>
-        (r.kode_reservasi && r.kode_reservasi.toLowerCase() === searchCode.trim().toLowerCase()) ||
-        (r.kode_booking && r.kode_booking.toLowerCase() === searchCode.trim().toLowerCase())
+        (r.kode_reservasi && r.kode_reservasi.toLowerCase().includes(query)) ||
+        (r.kode_booking && r.kode_booking.toLowerCase().includes(query)) ||
+        (String(r.id) === query) ||
+        (r.nama_pemesan && r.nama_pemesan.toLowerCase().includes(query)) ||
+        (r.member?.nama_member && r.member.nama_member.toLowerCase().includes(query))
     );
     setSelectedBooking(found || null);
   };
@@ -84,7 +88,7 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
             </div>
 
             <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
-              {(selectedBooking.status === 'dikonfirmasi' || selectedBooking.status === 'belum_dikonfirm') && (
+              {(selectedBooking.status === 'disetujui' || selectedBooking.status === 'dikonfirmasi' || selectedBooking.status === 'belum_dikonfirm') && (
                 <Button
                   variant="primary"
                   size="sm"

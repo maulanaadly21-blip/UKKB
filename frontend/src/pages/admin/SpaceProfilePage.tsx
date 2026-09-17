@@ -5,7 +5,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import api from '../../api/axios';
 import { useNotification } from '../../context/NotificationContext';
-import { Store, Save, Phone, User } from 'lucide-react';
+import { Store, Save, Phone, User, Building, ShieldCheck } from 'lucide-react';
 
 const SpaceProfilePage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +29,7 @@ const SpaceProfilePage: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error('Failed to fetch profile:', err);
+      console.error('Failed to fetch admin space profile:', err);
     } finally {
       setLoading(false);
     }
@@ -62,19 +62,24 @@ const SpaceProfilePage: React.FC = () => {
     <AdminLayout>
       <div className="max-w-3xl space-y-6">
         <div className="pb-4 border-b border-slate-200">
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-            <Store className="w-6 h-6 text-emerald-700" /> Profil Lokasi Coworking Space
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0F382C] block">
+            PENGATURAN LOKASI
+          </span>
+          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+            <Store className="w-6 h-6 text-[#0F382C]" /> Profil Lokasi Coworking Space
           </h1>
-          <p className="text-xs text-slate-500">Update data profil lokasi coworking space & pengelola (PDF Spec)</p>
+          <p className="text-xs text-slate-500">
+            Perbarui nama coworking space, penanggung jawab/pemilik, dan kontak operasional
+          </p>
         </div>
 
         {loading ? (
           <div className="h-64 bg-slate-200/60 rounded-2xl animate-pulse"></div>
         ) : (
-          <Card className="p-6">
+          <Card className="p-6 sm:p-8 shadow-2xs border border-slate-200">
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="Nama Coworking Space / Branding"
+                label="Nama Lokasi Coworking / Branding"
                 required
                 icon={Store}
                 placeholder="e.g. Moklet Hub Coworking Space"
@@ -86,13 +91,14 @@ const SpaceProfilePage: React.FC = () => {
                 label="Nama Pemilik / Penanggung Jawab"
                 required
                 icon={User}
-                placeholder="e.g. Ahmad Bidin, S.Kom"
+                placeholder="e.g. Ahmad Bidin"
                 value={formData.nama_pemilik}
                 onChange={(e) => setFormData({ ...formData, nama_pemilik: e.target.value })}
               />
 
               <Input
                 label="Nomor Telepon Kontak Resmi"
+                type="tel"
                 required
                 icon={Phone}
                 placeholder="e.g. 081298765432"

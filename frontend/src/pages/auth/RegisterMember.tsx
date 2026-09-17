@@ -1,8 +1,8 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
-import { User, Lock, Phone, Building, MapPin, UserPlus } from 'lucide-react';
+import { User, Lock, Phone, Building, MapPin, UserPlus, Upload, Key } from 'lucide-react';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
@@ -16,26 +16,47 @@ const RegisterMember: React.FC = () => {
     alamat: '',
     telp: ''
   });
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const { registerMember } = useAuth();
+  const { registerMember, appKey } = useAuth();
   const { showSuccess, showError } = useNotification();
   const navigate = useNavigate();
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFotoFile(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = {
-        ...formData,
-        nama: formData.nama_member || formData.username,
-        email: formData.username,
-        no_hp: formData.telp
-      };
-      await registerMember(payload);
-      showSuccess(`Pendaftaran member berhasil! Selamat bergabung, ${formData.nama_member}`);
+      if (fotoFile) {
+        const data = new FormData();
+        data.append('username', formData.username.trim());
+        data.append('password', formData.password);
+        data.append('nama_member', formData.nama_member);
+        data.append('instansi', formData.instansi);
+        data.append('alamat', formData.alamat);
+        data.append('telp', formData.telp);
+        data.append('foto', fotoFile);
+        await registerMember(data);
+      } else {
+        await registerMember({
+          username: formData.username.trim(),
+          password: formData.password,
+          nama_member: formData.nama_member,
+          instansi: formData.instansi,
+          alamat: formData.alamat,
+          telp: formData.telp
+        });
+      }
+
+      showSuccess(`Pendaftaran member berhasil! Selamat datang, ${formData.nama_member}`);
       navigate('/');
     } catch (err: any) {
-      showError(err.message || 'Gagal mendaftar member. Periksa kembali isian form.');
+      showError(err.message || 'Gagal mendaftar member. Pastikan data terisi lengkap.');
     } finally {
       setLoading(false);
     }
@@ -48,45 +69,45 @@ const RegisterMember: React.FC = () => {
           <Link to="/" className="inline-flex items-center gap-2 group mb-2">
             <img 
               src="/logo-transparent.png" 
-              alt="SmartSpace Logo" 
+              alt="Logo" 
               className="w-14 h-14 object-contain group-hover:scale-105 transition-transform duration-200" 
             />
           </Link>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Daftar Member Baru</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Daftar Akun Member Baru</h2>
           <p className="text-xs text-slate-500">
-            Dapatkan akses reservasi coworking space & workstation (UKK Paket B)
+            Akses pemesanan workstation dan meeting room coworking space
           </p>
         </div>
 
         <Card className="p-8 shadow-soft-lg">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Username"
+              label="Username (Login)"
               required
               name="username"
               autoComplete="username"
-              placeholder="e.g. johndoe"
+              placeholder="e.g. budiraharjo"
               icon={User}
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             />
 
             <Input
-              label="Nama Lengkap (Pelanggan)"
+              label="Nama Lengkap"
               required
               name="nama_member"
               autoComplete="name"
-              placeholder="e.g. John Doe"
+              placeholder="e.g. Budi Raharjo"
               icon={User}
               value={formData.nama_member}
               onChange={(e) => setFormData({ ...formData, nama_member: e.target.value })}
             />
 
             <Input
-              label="Instansi / Kampus / Perusahaan"
+              label="Instansi / Perusahaan"
               required
               name="instansi"
-              placeholder="e.g. Universitas Indonesia / PT Maju"
+              placeholder="e.g. SMK Telkom Malang / PT Maju"
               icon={Building}
               value={formData.instansi}
               onChange={(e) => setFormData({ ...formData, instansi: e.target.value })}
@@ -96,7 +117,7 @@ const RegisterMember: React.FC = () => {
               label="Alamat Domisili"
               required
               name="alamat"
-              placeholder="e.g. Jl. Sudirman No. 123, Jakarta"
+              placeholder="e.g. Jl. Danau Ranau No. 1, Malang"
               icon={MapPin}
               value={formData.alamat}
               onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
@@ -126,15 +147,27 @@ const RegisterMember: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
 
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                Foto Profil (Opsional)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-[#0F382C] hover:file:bg-emerald-100 cursor-pointer"
+              />
+            </div>
+
             <Button type="submit" variant="primary" fullWidth loading={loading} icon={UserPlus}>
-              Daftar Sekarang
+              Daftar Sebagai Member
             </Button>
           </form>
         </Card>
 
         <div className="text-center text-xs text-slate-500">
           Sudah punya akun?{' '}
-          <Link to="/login" className="font-bold text-emerald-700 hover:underline">
+          <Link to="/login" className="font-bold text-[#0F382C] hover:underline">
             Masuk Sesi
           </Link>
         </div>

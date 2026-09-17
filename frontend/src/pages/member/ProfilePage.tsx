@@ -1,32 +1,54 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
-import Select from '../../components/common/Select';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { User, Mail, Phone, Lock, Sparkles, Save, ShieldCheck, Crown, Award, Camera, Upload } from 'lucide-react';
+import { User, Mail, Phone, Lock, Sparkles, Save, ShieldCheck, Camera, Upload, Store, MapPin, Building } from 'lucide-react';
 import { getImageUrl } from '../../utils/image';
+import api from '../../api/axios';
 
 const ProfilePage: React.FC = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, isAdminSpace, isMember } = useAuth();
   const { showSuccess, showError } = useNotification();
 
   const [formData, setFormData] = useState({
-    nama: user?.nama || '',
-    email: user?.email || '',
-    no_hp: user?.no_hp || '',
-    tipe_membership: user?.member?.tipe_membership || 'reguler',
+    nama: '',
+    username: '',
+    email: '',
+    telp: '',
+    instansi: '',
+    alamat: '',
+    nama_coworking: '',
+    nama_pemilik: '',
     password: '',
     confirmPassword: ''
   });
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imgError, setImgError] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        nama: user.nama || user.nama_member || user.nama_pemilik || '',
+        username: user.username || '',
+        email: user.email || '',
+        telp: user.telp || user.no_hp || user.member?.telp || user.space_owner?.telp || '',
+        instansi: user.member?.instansi || '',
+        alamat: user.member?.alamat || '',
+        nama_coworking: user.space_owner?.nama_coworking || user.spaceOwner?.nama_coworking || '',
+        nama_pemilik: user.space_owner?.nama_pemilik || user.spaceOwner?.nama_pemilik || user.nama || '',
+        password: '',
+        confirmPassword: ''
+      });
+    }
+  }, [user]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -58,23 +80,37 @@ const ProfilePage: React.FC = () => {
 
     setLoading(true);
     try {
-      const dataPayload = new FormData();
-      dataPayload.append('nama', formData.nama);
-      dataPayload.append('no_hp', formData.no_hp);
-      dataPayload.append('tipe_membership', formData.tipe_membership);
-      if (formData.password) {
-        dataPayload.append('password', formData.password);
-      }
-      if (selectedFile) {
-        dataPayload.append('foto_profil', selectedFile);
+      if (isAdminSpace) {
+        const payload = {
+          nama_coworking: formData.nama_coworking || formData.nama,
+          nama_pemilik: formData.nama_pemilik || formData.nama,
+          telp: formData.telp
+        };
+        const res = await api.put('/admin/profile', payload);
+        if (res.data && (res.data.status || res.data.statusCode === 200)) {
+          showSuccess('Profil Coworking Space berhasil diperbarui!');
+        }
+      } else {
+        const dataPayload = new FormData();
+        dataPayload.append('nama', formData.nama);
+        dataPayload.append('telp', formData.telp);
+        dataPayload.append('instansi', formData.instansi);
+        dataPayload.append('alamat', formData.alamat);
+        if (formData.password) {
+          dataPayload.append('password', formData.password);
+        }
+        if (selectedFile) {
+          dataPayload.append('foto', selectedFile);
+          dataPayload.append('foto_profil', selectedFile);
+        }
+
+        await updateProfile(dataPayload);
+        showSuccess('Profil berhasil diperbarui!');
       }
 
-      await updateProfile(dataPayload);
-      showSuccess('Profil & foto berhasil diperbarui!');
-      setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+      setFormData((prev) => ({ ...prev, password: '', confirmPassword: '' }));
       setSelectedFile(null);
       setPreviewUrl(null);
-      setImgError(false);
     } catch (err: any) {
       showError(err.message || 'Gagal memperbarui profil');
     } finally {
@@ -82,9 +118,8 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const memberTier = user?.member?.tipe_membership || 'reguler';
-  const rawAvatar = previewUrl || (user?.foto_profil ? user.foto_profil : null);
-  const avatarUrl = getImageUrl(rawAvatar);
+  const rawAvatar = previewUrl || user?.foto_profil || user?.foto;
+  const avatarUrl = getImageUrl(rawAvatar, 'members');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -92,63 +127,68 @@ const ProfilePage: React.FC = () => {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Page Header Banner */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
-          <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-[#0F382C] text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
           <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
-            
             {/* Avatar Container with Upload Overlay */}
-            <div className="relative group">
+            <div className="relative group shrink-0">
               {avatarUrl && !imgError ? (
                 <img
                   src={avatarUrl}
-                  alt={user?.nama || 'User Avatar'}
+                  alt={user?.nama || 'Avatar'}
                   onError={() => setImgError(true)}
-                  className="w-24 h-24 rounded-2xl object-cover shadow-lg border-2 border-emerald-400/30"
+                  className="w-24 h-24 rounded-2xl object-cover shadow-lg border-2 border-emerald-400/30 bg-slate-800"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-2xl bg-emerald-600 text-white font-extrabold text-4xl flex items-center justify-center shadow-lg border-2 border-emerald-400/30">
-                  {user?.nama?.charAt(0)?.toUpperCase() || 'U'}
+                <div className="w-24 h-24 rounded-2xl bg-emerald-800 text-white font-black text-3xl flex items-center justify-center shadow-lg border-2 border-emerald-400/30">
+                  {(user?.nama || user?.username || 'U').charAt(0).toUpperCase()}
                 </div>
               )}
-              
-              <label
-                htmlFor="avatar-upload"
-                className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center cursor-pointer shadow-lg transition-transform hover:scale-110 border-2 border-slate-900"
-                title="Pilih foto dari laptop"
-              >
-                <Camera className="w-4 h-4" />
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </label>
+
+              {isMember && (
+                <label
+                  htmlFor="avatar-upload"
+                  className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-white text-[#0F382C] flex items-center justify-center cursor-pointer shadow-md transition-transform hover:scale-110 border border-slate-200"
+                  title="Ganti foto profil"
+                >
+                  <Camera className="w-4 h-4" />
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
+
             <div className="text-center sm:text-left space-y-2 flex-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{user?.nama}</h1>
-                <Badge variant={memberTier === 'vip' ? 'amber' : 'emerald'} size="md">
-                  {memberTier === 'vip' ? (
-                    <span className="flex items-center gap-1"><Crown className="w-3.5 h-3.5" /> VIP MEMBER</span>
-                  ) : (
-                    <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5" /> {memberTier.toUpperCase()} MEMBER</span>
-                  )}
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                  {user?.nama || user?.nama_member || user?.nama_pemilik || user?.username}
+                </h1>
+                <Badge variant="emerald" size="md">
+                  <span className="uppercase font-mono text-[11px] font-bold">
+                    {user?.role === 'admin_space' ? 'ADMIN PENGELOLA SPACE' : 'MEMBER RESMI'}
+                  </span>
                 </Badge>
               </div>
-              <p className="text-sm text-slate-300 flex items-center justify-center sm:justify-start gap-2">
-                <Mail className="w-4 h-4 text-emerald-400" /> {user?.email}
+
+              <p className="text-sm text-emerald-100 flex items-center justify-center sm:justify-start gap-2 font-medium">
+                <Mail className="w-4 h-4 text-emerald-300" /> {user?.username}
               </p>
-              <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs">
-                <span className="bg-white/10 px-3 py-1.5 rounded-xl font-semibold backdrop-blur-md flex items-center gap-1.5 text-amber-300">
-                  <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  {user?.member?.poin || 0} Poin Reward
-                </span>
-                <span className="bg-white/10 px-3 py-1.5 rounded-xl font-medium backdrop-blur-md text-slate-200 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+
+              <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs">
+                <span className="bg-white/10 px-3 py-1.5 rounded-xl font-medium backdrop-blur-md text-emerald-100 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-300" />
                   Akun Terverifikasi
                 </span>
+                {user?.member?.instansi && (
+                  <span className="bg-white/10 px-3 py-1.5 rounded-xl font-medium backdrop-blur-md text-emerald-100 flex items-center gap-1.5">
+                    <Building className="w-4 h-4 text-emerald-300" />
+                    {user.member.instansi}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -157,119 +197,143 @@ const ProfilePage: React.FC = () => {
         {/* Profile Edit Card */}
         <Card className="p-6 sm:p-8 shadow-soft-lg">
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Section 1: Personal Info */}
+            {/* Section 1: Data Identitas */}
             <div className="space-y-4">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <User className="w-5 h-5 text-emerald-600" /> Informasi Pribadi Member
+                  <User className="w-5 h-5 text-[#0F382C]" />
+                  {isAdminSpace ? 'Informasi Coworking Space & Pengelola' : 'Informasi Pribadi Member'}
                 </h2>
-                <p className="text-xs text-slate-500">Perbarui identitas dan nomor kontak aktif Anda.</p>
+                <p className="text-xs text-slate-500">Perbarui identitas profil dan kontak resmi Anda.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* File Upload Field */}
-                <div className="sm:col-span-2 flex flex-col gap-1.5 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Upload className="w-4 h-4 text-emerald-600" /> Foto Profil (Unggah File dari Laptop)
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                {isAdminSpace ? (
+                  <>
+                    <Input
+                      label="Nama Coworking Space"
+                      name="nama_coworking"
+                      required
+                      icon={Store}
+                      value={formData.nama_coworking}
+                      onChange={handleChange}
+                      placeholder="e.g. Moklet Hub Coworking"
                     />
-                    {selectedFile && (
-                      <span className="text-xs font-medium text-emerald-600 whitespace-nowrap">
-                        ✓ {selectedFile.name}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400">Format yang didukung: JPG, PNG, WEBP, GIF (Maks. 5MB)</p>
-                </div>
 
-                <Input
-                  label="Nama Lengkap"
-                  name="nama"
-                  required
-                  icon={User}
-                  value={formData.nama}
-                  onChange={handleChange}
-                  placeholder="Masukkan nama lengkap"
-                />
+                    <Input
+                      label="Nama Pemilik / Penanggung Jawab"
+                      name="nama_pemilik"
+                      required
+                      icon={User}
+                      value={formData.nama_pemilik}
+                      onChange={handleChange}
+                      placeholder="e.g. Ahmad Bidin"
+                    />
 
-                <Input
-                  label="Alamat Email"
-                  name="email"
-                  disabled
-                  icon={Mail}
-                  value={formData.email}
-                  helperText="Alamat email tidak dapat diubah (digunakan untuk login)"
-                  className="bg-slate-50 cursor-not-allowed"
-                />
+                    <Input
+                      label="Nomor Telepon Kontak"
+                      name="telp"
+                      required
+                      icon={Phone}
+                      value={formData.telp}
+                      onChange={handleChange}
+                      placeholder="081298765432"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Input
+                      label="Nama Lengkap Pelanggan"
+                      name="nama"
+                      required
+                      icon={User}
+                      value={formData.nama}
+                      onChange={handleChange}
+                      placeholder="e.g. John Doe"
+                    />
 
-                <Input
-                  label="Nomor WhatsApp / HP"
-                  name="no_hp"
-                  icon={Phone}
-                  value={formData.no_hp}
-                  onChange={handleChange}
-                  placeholder="Contoh: 081234567890"
-                />
+                    <Input
+                      label="Username Login"
+                      name="username"
+                      disabled
+                      icon={Mail}
+                      value={formData.username}
+                      helperText="Username digunakan sebagai identitas login utama"
+                      className="bg-slate-50 cursor-not-allowed"
+                    />
 
-                {user?.role === 'member' && (
-                  <Select
-                    label="Tipe Membership"
-                    name="tipe_membership"
-                    value={formData.tipe_membership}
-                    onChange={handleChange}
-                    options={[
-                      { value: 'reguler', label: 'Reguler Member (Biasa)' },
-                      { value: 'vip', label: 'VIP Member (Prioritas + Diskon Poin)' },
-                      { value: 'corporate', label: 'Corporate Member (Bisnis)' }
-                    ]}
-                  />
+                    <Input
+                      label="Nomor Telepon / WhatsApp"
+                      name="telp"
+                      icon={Phone}
+                      value={formData.telp}
+                      onChange={handleChange}
+                      placeholder="Contoh: 081234567890"
+                    />
+
+                    <Input
+                      label="Instansi / Perusahaan"
+                      name="instansi"
+                      icon={Building}
+                      value={formData.instansi}
+                      onChange={handleChange}
+                      placeholder="e.g. SMK Telkom Malang"
+                    />
+
+                    <div className="sm:col-span-2">
+                      <Input
+                        label="Alamat Lengkap Domisili"
+                        name="alamat"
+                        icon={MapPin}
+                        value={formData.alamat}
+                        onChange={handleChange}
+                        placeholder="e.g. Jl. Danau Ranau No. 1, Sawojajar, Malang"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             </div>
 
-            {/* Section 2: Security & Password */}
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="border-b border-slate-100 pb-3">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-emerald-600" /> Keamanan Akun & Kata Sandi
-                </h2>
-                <p className="text-xs text-slate-500">Kosongkan kolom ini jika Anda tidak ingin mengganti kata sandi saat ini.</p>
-              </div>
+            {/* Section 2: Kata Sandi (Member only) */}
+            {isMember && (
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="border-b border-slate-100 pb-3">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <Lock className="w-5 h-5 text-[#0F382C]" /> Ganti Kata Sandi
+                  </h2>
+                  <p className="text-xs text-slate-500">Kosongkan kolom ini jika Anda tidak ingin mengganti kata sandi.</p>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Kata Sandi Baru"
-                  type="password"
-                  name="password"
-                  icon={Lock}
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  helperText="Minimal 6 karakter"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Kata Sandi Baru"
+                    type="password"
+                    name="password"
+                    icon={Lock}
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    helperText="Minimal 6 karakter"
+                  />
 
-                <Input
-                  label="Konfirmasi Kata Sandi Baru"
-                  type="password"
-                  name="confirmPassword"
-                  icon={Lock}
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                />
+                  <Input
+                    label="Konfirmasi Kata Sandi Baru"
+                    type="password"
+                    name="confirmPassword"
+                    icon={Lock}
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Submit Button */}
-            <div className="pt-4 flex justify-end">
+            <div className="pt-4 flex justify-end border-t border-slate-100">
               <Button type="submit" variant="primary" loading={loading} icon={Save} className="px-8">
-                Simpan Perubahan Profil
+                Simpan Perubahan
               </Button>
             </div>
           </form>

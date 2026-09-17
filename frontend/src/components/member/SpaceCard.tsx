@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Users, Heart, ArrowRight } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
+import { getImageUrl, getPlaceholderImage } from '../../utils/image';
 import { Space } from '../../types';
 
 interface SpaceCardProps {
@@ -9,10 +10,9 @@ interface SpaceCardProps {
   variant?: string;
 }
 
-const SpaceCard: React.FC<SpaceCardProps> = ({ space, onBookNow, variant = 'default' }) => {
+const SpaceCard: React.FC<SpaceCardProps> = ({ space, onBookNow }) => {
   const [isLiked, setIsLiked] = useState(false);
   const { showSuccess, showInfo } = useNotification();
-  const isAvailable = space.liveStatus !== 'terisi' && space.status !== 'dibatalkan';
 
   useEffect(() => {
     const favorites: number[] = JSON.parse(localStorage.getItem('favorite_spaces') || '[]');
@@ -44,40 +44,37 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onBookNow, variant = 'defa
   const getTypeLabel = (tipe?: string) => {
     if (tipe === 'private_office') return 'Private Office';
     if (tipe === 'meeting_room') return 'Meeting Room';
-    return 'Hot Desk';
+    return 'Personal Desk';
   };
 
   const getUnit = (tipe?: string) => {
-    if (tipe === 'private_office') return '/ bulan';
-    if (tipe === 'meeting_room') return '/ jam';
     return '/ jam';
   };
 
-  const getImageUrl = (spaceObj: Space) => {
-    if (spaceObj.foto_url) return spaceObj.foto_url;
-    if (spaceObj.foto) {
-      if (spaceObj.foto.startsWith('http')) return spaceObj.foto;
-      return `http://localhost:5001/uploads/spaces/${spaceObj.foto}`;
-    }
-    return spaceObj.foto_ruangan || 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80';
+  const resolveImage = () => {
+    const fromHelper = getImageUrl(space.foto_url || space.foto || space.foto_ruangan, 'spaces');
+    if (fromHelper) return fromHelper;
+    return getPlaceholderImage(space.tipe);
   };
 
-  const locationName = space.nama_coworking || 'SCBD Tower, Jakarta Selatan';
-  const specsText = typeof space.deskripsi === 'string' ? space.deskripsi : 'High-speed Wi-Fi, Stopkontak Mandiri';
+  const locationName = space.nama_coworking || space.owner?.nama_coworking || 'Moklet Hub Coworking';
+  const specsText = typeof space.deskripsi === 'string' && space.deskripsi.trim() !== ''
+    ? space.deskripsi
+    : 'High-speed Wi-Fi, Stopkontak Mandiri';
 
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col justify-between group">
+    <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col justify-between group">
       <div>
         {/* Card Image Container */}
         <div className="relative h-48 overflow-hidden bg-slate-100">
           <img
-            src={getImageUrl(space)}
+            src={resolveImage()}
             alt={space.nama_space || space.nama_ruangan || 'Space Image'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
               const target = e.currentTarget;
               target.onerror = null;
-              target.src = 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80';
+              target.src = getPlaceholderImage(space.tipe);
             }}
           />
 
@@ -145,9 +142,9 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space, onBookNow, variant = 'defa
         <button
           type="button"
           onClick={() => onBookNow(space)}
-          className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer bg-[#EBF3F9] hover:bg-[#dcebf5] text-[#1E40AF] flex items-center gap-1"
+          className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer bg-[#E6F4F1] hover:bg-[#d5eee9] text-[#0F382C] flex items-center gap-1 border border-emerald-200"
         >
-          Detail
+          Pesan
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
