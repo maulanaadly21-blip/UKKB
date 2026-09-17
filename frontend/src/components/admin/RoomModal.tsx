@@ -4,7 +4,6 @@ import Input from '../common/Input';
 import Select from '../common/Select';
 import Button from '../common/Button';
 import api from '../../api/axios';
-import { Upload, Trash2, Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Space } from '../../types';
 
 interface RoomModalProps {
@@ -206,7 +205,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ isOpen, onClose, onSave, room = n
             rows={3}
             required
             placeholder="e.g. WiFi 100Mbps, stopkontak, monitor 24 inch, free flow kopi/teh"
-            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:border-emerald-600 focus:outline-none"
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:border-red-500 focus:outline-none"
             value={formData.deskripsi}
             onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
           ></textarea>
@@ -221,7 +220,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ isOpen, onClose, onSave, room = n
             <button
               type="button"
               onClick={() => setShowManualInput(!showManualInput)}
-              className="text-[11px] text-emerald-800 hover:underline font-semibold cursor-pointer"
+              className="text-[11px] text-red-600 hover:underline font-semibold cursor-pointer"
             >
               {showManualInput ? 'Sembunyikan Opsi Teks' : 'Opsi Manual (Ketik Nama File)'}
             </button>
@@ -250,7 +249,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ isOpen, onClose, onSave, room = n
 
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end justify-between p-3">
                 <div className="flex items-center gap-2 text-white text-xs font-medium truncate max-w-[65%]">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <i className="fa-solid fa-circle-check text-red-400 shrink-0 text-sm"></i>
                   <span className="truncate font-mono">{formData.foto}</span>
                 </div>
 
@@ -261,24 +260,24 @@ const RoomModal: React.FC<RoomModalProps> = ({ isOpen, onClose, onSave, room = n
                     disabled={uploading}
                     className="bg-white/90 hover:bg-white text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-lg backdrop-blur-md transition-all flex items-center gap-1 cursor-pointer"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${uploading ? 'animate-spin' : ''}`} />
+                    <i className={`fa-solid fa-rotate-right text-xs ${uploading ? 'fa-spin' : ''}`}></i>
                     Ganti
                   </button>
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
                     disabled={uploading}
-                    className="bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold p-1.5 rounded-lg backdrop-blur-md transition-all cursor-pointer"
+                    className="bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold p-1.5 rounded-lg backdrop-blur-md transition-all cursor-pointer flex items-center justify-center w-7 h-7"
                     title="Hapus foto"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <i className="fa-solid fa-trash-can text-xs"></i>
                   </button>
                 </div>
               </div>
 
               {uploading && (
                 <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-xs flex flex-col items-center justify-center text-white space-y-2">
-                  <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+                  <i className="fa-solid fa-spinner fa-spin text-red-500 text-xl"></i>
                   <span className="text-xs font-bold">Mengunggah gambar baru...</span>
                 </div>
               )}
@@ -291,23 +290,23 @@ const RoomModal: React.FC<RoomModalProps> = ({ isOpen, onClose, onSave, room = n
               onClick={() => !uploading && fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer flex flex-col items-center justify-center space-y-2.5 ${
                 isDragging
-                  ? 'border-emerald-500 bg-emerald-50/50'
-                  : 'border-slate-300 hover:border-emerald-500 bg-slate-50/60 hover:bg-emerald-50/20'
+                  ? 'border-red-500 bg-red-50/50'
+                  : 'border-slate-300 hover:border-red-500 bg-slate-50/60 hover:bg-red-50/20'
               }`}
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+                  <i className="fa-solid fa-spinner fa-spin text-red-600 text-2xl"></i>
                   <p className="text-xs font-bold text-slate-700">Mengunggah file foto ke server...</p>
                 </>
               ) : (
                 <>
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center">
-                    <Upload className="w-5 h-5" />
+                  <div className="w-11 h-11 rounded-2xl bg-red-100/80 text-red-600 flex items-center justify-center">
+                    <i className="fa-solid fa-upload text-base"></i>
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-800">
-                      Pilih file foto atau seret & lepas di sini
+                      Pilih file foto atau seret &amp; lepas di sini
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
                       Format didukung: JPG, PNG, WEBP, GIF (Maks 5MB)
@@ -315,7 +314,7 @@ const RoomModal: React.FC<RoomModalProps> = ({ isOpen, onClose, onSave, room = n
                   </div>
                   <button
                     type="button"
-                    className="text-xs font-bold text-emerald-700 bg-emerald-100/60 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+                    className="text-xs font-bold text-red-600 bg-red-100/60 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
                   >
                     Cari File Gambar
                   </button>

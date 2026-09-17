@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -44,25 +43,25 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-start p-4 rounded-xl shadow-lg border transition-all duration-300 transform translate-y-0 ${
+            className={`pointer-events-auto flex items-start p-4 rounded-2xl shadow-xl border transition-all duration-300 transform translate-y-0 ${
               toast.type === 'success'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                ? 'bg-red-50 border-red-200 text-red-950 font-medium'
                 : toast.type === 'error'
-                ? 'bg-rose-50 border-rose-200 text-rose-900'
-                : 'bg-slate-900 border-slate-800 text-white'
+                ? 'bg-rose-50 border-rose-200 text-rose-950 font-medium'
+                : 'bg-zinc-950 border-zinc-800 text-white font-medium'
             }`}
           >
             <div className="mr-3 mt-0.5 shrink-0">
-              {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
-              {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600" />}
-              {toast.type === 'info' && <Info className="w-5 h-5 text-teal-400" />}
+              {toast.type === 'success' && <i className="fa-solid fa-circle-check text-red-600 text-base"></i>}
+              {toast.type === 'error' && <i className="fa-solid fa-circle-exclamation text-rose-600 text-base"></i>}
+              {toast.type === 'info' && <i className="fa-solid fa-circle-info text-red-500 text-base"></i>}
             </div>
             <div className="flex-1 text-sm font-medium leading-relaxed">{toast.message}</div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="ml-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              className="ml-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer flex items-center justify-center"
             >
-              <X className="w-4 h-4" />
+              <i className="fa-solid fa-xmark text-sm"></i>
             </button>
           </div>
         ))}

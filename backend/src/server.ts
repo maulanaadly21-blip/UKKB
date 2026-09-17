@@ -388,8 +388,34 @@ app.post('/api/auth/login', async (req: CustomRequest, res: Response) => {
       return sendError(res, 400, 'Username dan password wajib diisi!', 'Bad Request');
     }
 
-    const user = await dbGet(`SELECT * FROM users WHERE username = ? AND app_key = ?`, [usernameInput, appKey]);
+    let user = await dbGet(`SELECT * FROM users WHERE username = ? AND app_key = ?`, [usernameInput, appKey]);
     if (!user) {
+      user = await dbGet(`SELECT * FROM users WHERE username = ?`, [usernameInput]);
+    }
+
+    if (!user) {
+      const maker = await dbGet(`SELECT * FROM app_makers WHERE username = ? OR email = ?`, [usernameInput, usernameInput]);
+      if (maker) {
+        const isValidMaker = await bcrypt.compare(password, maker.password);
+        if (!isValidMaker) {
+          return sendError(res, 401, 'Username atau Password salah!', 'Unauthorized');
+        }
+
+        const token = jwt.sign(
+          { id: maker.id, username: maker.username, role: 'app_maker', app_key: maker.app_key },
+          JWT_SECRET,
+          { expiresIn: '7d' }
+        );
+
+        return sendSuccess(res, 200, 'Login App Maker berhasil!', {
+          id: maker.id,
+          username: maker.username,
+          role: 'app_maker',
+          app_key: maker.app_key,
+          access_token: token,
+          token
+        });
+      }
       return sendError(res, 401, 'Username atau Password salah!', 'Unauthorized');
     }
 
@@ -407,6 +433,8 @@ app.post('/api/auth/login', async (req: CustomRequest, res: Response) => {
       spaceOwnerData = await dbGet(`SELECT * FROM space_owners WHERE id_user = ?`, [user.id]);
     }
 
+    const effectiveAppKey = user.app_key || appKey;
+
     const token = jwt.sign(
       {
         id: user.id,
@@ -414,7 +442,7 @@ app.post('/api/auth/login', async (req: CustomRequest, res: Response) => {
         role: user.role,
         member_id: memberData ? memberData.id : null,
         owner_id: spaceOwnerData ? spaceOwnerData.id : null,
-        app_key: appKey
+        app_key: effectiveAppKey
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -424,6 +452,7 @@ app.post('/api/auth/login', async (req: CustomRequest, res: Response) => {
       id: user.id,
       username: user.username,
       role: user.role,
+      app_key: effectiveAppKey,
       maker_id: 5,
       member: memberData,
       space_owner: spaceOwnerData,
@@ -438,8 +467,18 @@ app.post('/api/auth/login', async (req: CustomRequest, res: Response) => {
 // Endpoint 11: GET /api/auth/profile
 app.get('/api/auth/profile', authenticateToken, async (req: CustomRequest, res: Response) => {
   try {
-    const user = await dbGet(`SELECT id, username, role, app_key FROM users WHERE id = ?`, [req.user.id]);
+    let user = await dbGet(`SELECT id, username, role, app_key FROM users WHERE id = ?`, [req.user.id]);
     if (!user) {
+      const maker = await dbGet(`SELECT id, name, username, email, app_key, created_at FROM app_makers WHERE id = ?`, [req.user.id]);
+      if (maker) {
+        return sendSuccess(res, 200, 'Berhasil memproses permintaan', {
+          id: maker.id,
+          username: maker.username,
+          role: 'app_maker',
+          app_key: maker.app_key,
+          maker
+        });
+      }
       return sendError(res, 404, 'User tidak ditemukan!', 'NotFound');
     }
 
@@ -456,6 +495,7 @@ app.get('/api/auth/profile', authenticateToken, async (req: CustomRequest, res: 
       id: user.id,
       username: user.username,
       role: user.role,
+      app_key: user.app_key,
       member: memberData,
       space_owner: spaceOwnerData
     });

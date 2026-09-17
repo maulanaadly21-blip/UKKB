@@ -1,5 +1,4 @@
 import React from 'react';
-import { Users, CheckCircle, AlertTriangle } from 'lucide-react';
 import Badge from '../common/Badge';
 import { Space } from '../../types';
 
@@ -17,23 +16,23 @@ const FloorPlanHeatmap: React.FC<FloorPlanHeatmapProps> = ({ spaces = [], onSele
     <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-soft mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+          <h3 className="text-base font-display font-extrabold text-slate-900 uppercase flex items-center gap-2">
             Visual Floor Plan Heatmap Matrix
-            <Badge variant="emerald" size="xs">Denah Mini Instan</Badge>
+            <Badge variant="red" size="xs">Denah Mini Instan</Badge>
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Setiap modul mewakili zona meja & ruangan nyata di Coworking Space. Klik modul untuk pemesanan cepat.
+            Setiap modul mewakili zona meja &amp; ruangan nyata di Coworking Space. Klik modul untuk pemesanan cepat.
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs font-semibold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shrink-0">
-          <span className="flex items-center gap-1.5 text-emerald-700">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Tersedia
+          <span className="flex items-center gap-1.5 text-red-600">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span> Tersedia
           </span>
           <span className="flex items-center gap-1.5 text-amber-700">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Terisi
           </span>
-          <span className="flex items-center gap-1.5 text-teal-700">
-            <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span> Promo Active
+          <span className="flex items-center gap-1.5 text-zinc-900">
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-900"></span> Promo Active
           </span>
         </div>
       </div>
@@ -44,16 +43,16 @@ const FloorPlanHeatmap: React.FC<FloorPlanHeatmapProps> = ({ spaces = [], onSele
           const status = space.heatmapStatus || 'tersedia';
 
           const statusStyles: Record<string, string> = {
-            tersedia: 'border-emerald-300 bg-white hover:bg-emerald-50/60 text-slate-900 hover:border-emerald-500',
+            tersedia: 'border-red-200 bg-white hover:bg-red-50/40 text-slate-900 hover:border-red-500',
             terisi: 'border-amber-300 bg-amber-50/70 text-amber-900 cursor-not-allowed opacity-80',
-            promo: 'border-teal-300 bg-teal-50/70 text-teal-900 hover:bg-teal-100/70 hover:border-teal-500',
+            promo: 'border-zinc-300 bg-zinc-100 text-zinc-900 hover:bg-zinc-200/70 hover:border-zinc-500',
             maintenance: 'border-slate-300 bg-slate-100 text-slate-400 cursor-not-allowed'
           };
 
-          const statusBadgeVariants: Record<string, 'emerald' | 'amber' | 'teal' | 'slate'> = {
-            tersedia: 'emerald',
+          const statusBadgeVariants: Record<string, 'red' | 'amber' | 'studio' | 'slate'> = {
+            tersedia: 'red',
             terisi: 'amber',
-            promo: 'teal',
+            promo: 'studio',
             maintenance: 'slate'
           };
 
@@ -79,7 +78,7 @@ const FloorPlanHeatmap: React.FC<FloorPlanHeatmapProps> = ({ spaces = [], onSele
 
               {/* Center Content */}
               <div className="my-1">
-                <h4 className="text-xs font-extrabold line-clamp-2 leading-tight group-hover:text-emerald-700 transition-colors">
+                <h4 className="text-xs font-extrabold line-clamp-2 leading-tight group-hover:text-red-600 transition-colors">
                   {space.nama_ruangan || space.nama_space}
                 </h4>
                 <p className="text-[11px] font-semibold opacity-80 mt-1">
@@ -90,10 +89,10 @@ const FloorPlanHeatmap: React.FC<FloorPlanHeatmapProps> = ({ spaces = [], onSele
               {/* Footer Capacity */}
               <div className="flex items-center justify-between text-[10px] font-semibold border-t border-slate-200/50 pt-1.5 opacity-80">
                 <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" /> {space.kapasitas} Orang
+                  <i className="fa-solid fa-users text-[10px]"></i> {space.kapasitas} Orang
                 </span>
-                {status === 'tersedia' && <CheckCircle className="w-3 h-3 text-emerald-600" />}
-                {status === 'terisi' && <AlertTriangle className="w-3 h-3 text-amber-600" />}
+                {status === 'tersedia' && <i className="fa-solid fa-circle-check text-red-600 text-[11px]"></i>}
+                {status === 'terisi' && <i className="fa-solid fa-triangle-exclamation text-amber-600 text-[11px]"></i>}
               </div>
             </div>
           );

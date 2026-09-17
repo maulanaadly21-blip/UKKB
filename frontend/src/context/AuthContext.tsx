@@ -45,6 +45,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const res = await api.get('/auth/profile');
           if (res.data && (res.data.status || res.data.statusCode === 200)) {
             const userData = res.data.data.user || res.data.data;
+            const userAppKey = res.data.data?.app_key || userData?.app_key;
+            if (userAppKey) {
+              updateAppKey(userAppKey);
+            }
             setUser(userData);
             localStorage.setItem('user', JSON.stringify(userData));
           }
@@ -74,7 +78,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const responseData = res.data.data;
         const newToken = responseData.token || responseData.access_token;
         const userObj = responseData.user || responseData;
+        const returnedAppKey = responseData.app_key || userObj?.app_key;
         
+        if (returnedAppKey) {
+          updateAppKey(returnedAppKey);
+        }
+
         setToken(newToken);
         setUser(userObj);
         localStorage.setItem('token', newToken);

@@ -25,6 +25,8 @@ export interface User {
   nama?: string;
   email?: string;
   foto_profil?: string;
+  telp?: string;
+  no_hp?: string;
   member?: MemberData | null;
   space_owner?: SpaceOwnerData | null;
   spaceOwner?: SpaceOwnerData | null;
@@ -59,6 +61,8 @@ export interface Discount {
   tanggal_akhir: string;
   is_active?: boolean;
 }
+
+export type PromoDiskon = Discount;
 
 export interface Reservation {
   id: number;

@@ -5,7 +5,6 @@ import RoomModal from '../../components/admin/RoomModal';
 import Badge from '../../components/common/Badge';
 import api from '../../api/axios';
 import { useNotification } from '../../context/NotificationContext';
-import { Plus, Edit2, Trash2, Layers, Users } from 'lucide-react';
 import { Space } from '../../types';
 
 const ManageSpacesPage: React.FC = () => {
@@ -76,34 +75,35 @@ const ManageSpacesPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+      <div className="space-y-8 pb-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-              <Layers className="w-6 h-6 text-emerald-700" /> Kelola Space Ruangan & Meja
+            <span className="studio-badge">SPACE MANAGEMENT</span>
+            <h1 className="text-3xl font-display font-black uppercase text-zinc-900 tracking-tight mt-1 flex items-center gap-2">
+              <i className="fa-solid fa-layer-group text-red-600 text-2xl"></i> KELOLA SPACES &amp; RUANGAN
             </h1>
-            <p className="text-xs text-slate-500">Manajemen Personal Desk, Meeting Room, & Private Office (UKK Paket B)</p>
+            <p className="text-xs text-zinc-500 font-medium">Manajemen katalog Workstation, Podcast Pods, Boardrooms, &amp; Studio Suites</p>
           </div>
 
-          <Button variant="primary" icon={Plus} onClick={handleOpenAdd}>
-            Tambah Space Baru
+          <Button variant="primary" icon="fa-solid fa-plus" onClick={handleOpenAdd} className="bg-red-600 hover:bg-red-500 text-white font-display font-bold uppercase tracking-wider shadow-red-glow rounded-2xl py-3 px-5">
+            TAMBAH SPACE BARU &rarr;
           </Button>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1, 2].map((i) => (
-              <div key={i} className="h-40 bg-slate-200/60 rounded-2xl animate-pulse"></div>
+              <div key={i} className="h-44 bg-zinc-100 rounded-3xl animate-pulse"></div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {spaces.map((space) => (
               <div
                 key={space.id}
-                className="bg-white border border-slate-200 rounded-2xl p-5 shadow-soft flex items-start gap-4 justify-between"
+                className="bg-white border border-zinc-200/90 hover:border-zinc-300 rounded-3xl p-6 shadow-soft hover:shadow-studio transition-all duration-300 flex items-start gap-5 justify-between"
               >
-                <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
+                <div className="w-28 h-28 rounded-2xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800">
                   <img 
                     src={space.foto_url || (space.foto ? (space.foto.startsWith('http') ? space.foto : `http://localhost:5001/uploads/spaces/${space.foto}`) : '/placeholder-space.jpg')} 
                     alt={space.nama_space} 
@@ -111,37 +111,35 @@ const ManageSpacesPage: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="emerald" size="xs">
-                      {space.tipe?.toUpperCase() || 'DESK'}
-                    </Badge>
+                <div className="space-y-2 flex-1">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 bg-zinc-950 text-white rounded-lg inline-block">
+                    {space.tipe?.toUpperCase() || 'DESK'}
+                  </span>
+
+                  <h3 className="text-base font-display font-extrabold text-zinc-900 uppercase line-clamp-1">{space.nama_space || space.nama_ruangan}</h3>
+                  <div className="text-sm font-display font-black text-red-600">
+                    Rp {space.harga_per_jam?.toLocaleString('id-ID')} <span className="text-[10px] font-mono font-normal text-zinc-400 uppercase">/ JAM</span>
                   </div>
 
-                  <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1">{space.nama_space || space.nama_ruangan}</h3>
-                  <p className="text-xs font-bold text-emerald-800">
-                    Rp {space.harga_per_jam?.toLocaleString('id-ID')} / jam
-                  </p>
-
-                  <div className="flex items-center gap-3 text-xs text-slate-500 font-medium pt-1">
+                  <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono font-medium pt-1">
                     <span className="flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5" /> Kapasitas: {space.kapasitas} Orang
+                      <i className="fa-solid fa-users text-red-500 text-xs"></i> {space.kapasitas} KAPASITAS
                     </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5 shrink-0">
+                <div className="flex flex-col gap-2 shrink-0">
                   <button
                     onClick={() => handleOpenEdit(space)}
-                    className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <i className="fa-solid fa-pen-to-square text-sm"></i>
                   </button>
                   <button
                     onClick={() => handleDeleteSpace(space.id)}
-                    className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <i className="fa-solid fa-trash-can text-sm"></i>
                   </button>
                 </div>
               </div>
@@ -162,3 +160,4 @@ const ManageSpacesPage: React.FC = () => {
 };
 
 export default ManageSpacesPage;
+

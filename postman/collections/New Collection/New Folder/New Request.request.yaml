@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{BASE_URL}}api/maker/register"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"name\": \"adlytoxz\",\r
+
+    \  \"username\": \"adly_sja\",\r
+
+    \  \"email\": \"Adly@smk.sch.id\",\r
+
+    \  \"password\": \"Password123!\"\r
+
+    }"
+order: 1789446225496

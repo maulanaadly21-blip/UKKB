@@ -8,7 +8,6 @@ import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { User, Mail, Phone, Lock, Sparkles, Save, ShieldCheck, Crown, Award, Camera, Upload } from 'lucide-react';
 import { getImageUrl } from '../../utils/image';
 
 const ProfilePage: React.FC = () => {
@@ -87,13 +86,13 @@ const ProfilePage: React.FC = () => {
   const avatarUrl = getImageUrl(rawAvatar);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-zinc-50 flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Page Header Banner */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
-          <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-zinc-950 text-white rounded-3xl p-6 sm:p-10 shadow-studio relative overflow-hidden border border-zinc-800">
+          <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
             
             {/* Avatar Container with Upload Overlay */}
@@ -103,20 +102,20 @@ const ProfilePage: React.FC = () => {
                   src={avatarUrl}
                   alt={user?.nama || 'User Avatar'}
                   onError={() => setImgError(true)}
-                  className="w-24 h-24 rounded-2xl object-cover shadow-lg border-2 border-emerald-400/30"
+                  className="w-24 h-24 rounded-2xl object-cover shadow-studio border-2 border-red-500/50"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-2xl bg-emerald-600 text-white font-extrabold text-4xl flex items-center justify-center shadow-lg border-2 border-emerald-400/30">
+                <div className="w-24 h-24 rounded-2xl bg-red-600 text-white font-display font-black text-4xl flex items-center justify-center shadow-red-glow border-2 border-red-400">
                   {user?.nama?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
               )}
               
               <label
                 htmlFor="avatar-upload"
-                className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center cursor-pointer shadow-lg transition-transform hover:scale-110 border-2 border-slate-900"
-                title="Pilih foto dari laptop"
+                className="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center cursor-pointer shadow-red-glow transition-transform hover:scale-110 border-2 border-zinc-950"
+                title="Pilih foto dari perangkat"
               >
-                <Camera className="w-4 h-4" />
+                <i className="fa-solid fa-camera text-xs"></i>
                 <input
                   id="avatar-upload"
                   type="file"
@@ -126,28 +125,26 @@ const ProfilePage: React.FC = () => {
                 />
               </label>
             </div>
+
             <div className="text-center sm:text-left space-y-2 flex-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{user?.nama}</h1>
-                <Badge variant={memberTier === 'vip' ? 'amber' : 'emerald'} size="md">
-                  {memberTier === 'vip' ? (
-                    <span className="flex items-center gap-1"><Crown className="w-3.5 h-3.5" /> VIP MEMBER</span>
-                  ) : (
-                    <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5" /> {memberTier.toUpperCase()} MEMBER</span>
-                  )}
-                </Badge>
-              </div>
-              <p className="text-sm text-slate-300 flex items-center justify-center sm:justify-start gap-2">
-                <Mail className="w-4 h-4 text-emerald-400" /> {user?.email}
-              </p>
-              <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs">
-                <span className="bg-white/10 px-3 py-1.5 rounded-xl font-semibold backdrop-blur-md flex items-center gap-1.5 text-amber-300">
-                  <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  {user?.member?.poin || 0} Poin Reward
+                <h1 className="text-2xl sm:text-3xl font-display font-black uppercase tracking-tight text-white">{user?.nama}</h1>
+                <span className="text-[11px] font-mono font-bold uppercase px-3 py-1 bg-red-950 text-red-400 border border-red-800 rounded-full flex items-center gap-1.5">
+                  <i className="fa-solid fa-crown text-red-500 text-xs"></i>
+                  {memberTier.toUpperCase()} MEMBER PASS
                 </span>
-                <span className="bg-white/10 px-3 py-1.5 rounded-xl font-medium backdrop-blur-md text-slate-200 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  Akun Terverifikasi
+              </div>
+              <p className="text-xs font-mono text-zinc-400 flex items-center justify-center sm:justify-start gap-2">
+                <i className="fa-solid fa-envelope text-red-500 text-xs"></i> {user?.email}
+              </p>
+              <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs">
+                <span className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl font-mono font-bold flex items-center gap-1.5 text-white">
+                  <i className="fa-solid fa-sparkles text-red-500 text-xs"></i>
+                  {user?.member?.poin || 0} REWARD POINTS
+                </span>
+                <span className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl font-mono text-zinc-400 flex items-center gap-1.5">
+                  <i className="fa-solid fa-shield-halved text-red-500 text-xs"></i>
+                  VERIFIED ACCOUNT
                 </span>
               </div>
             </div>
@@ -155,44 +152,44 @@ const ProfilePage: React.FC = () => {
         </div>
 
         {/* Profile Edit Card */}
-        <Card className="p-6 sm:p-8 shadow-soft-lg">
+        <Card className="p-6 sm:p-8 shadow-soft rounded-3xl border border-zinc-200">
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Section 1: Personal Info */}
             <div className="space-y-4">
-              <div className="border-b border-slate-100 pb-3">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <User className="w-5 h-5 text-emerald-600" /> Informasi Pribadi Member
+              <div className="border-b border-zinc-200 pb-3">
+                <h2 className="text-lg font-display font-extrabold text-zinc-900 uppercase flex items-center gap-2">
+                  <i className="fa-solid fa-user text-red-600 text-base"></i> INFORMASI PROFIL MEMBER
                 </h2>
-                <p className="text-xs text-slate-500">Perbarui identitas dan nomor kontak aktif Anda.</p>
+                <p className="text-xs text-zinc-500">Perbarui identitas dan kontak aktif akun Anda.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* File Upload Field */}
-                <div className="sm:col-span-2 flex flex-col gap-1.5 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Upload className="w-4 h-4 text-emerald-600" /> Foto Profil (Unggah File dari Laptop)
+                <div className="sm:col-span-2 flex flex-col gap-1.5 bg-zinc-950 p-5 rounded-2xl border border-zinc-800 text-white">
+                  <label className="text-xs font-mono font-bold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i className="fa-solid fa-upload text-red-500 text-xs"></i> FOTO PROFIL (UNGGAH FILE BARU)
                   </label>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-1">
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleFileChange}
-                      className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                      className="block w-full text-xs text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-mono file:font-bold file:bg-red-600 file:text-white hover:file:bg-red-500 cursor-pointer"
                     />
                     {selectedFile && (
-                      <span className="text-xs font-medium text-emerald-600 whitespace-nowrap">
+                      <span className="text-xs font-mono text-red-400 whitespace-nowrap">
                         ✓ {selectedFile.name}
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-400">Format yang didukung: JPG, PNG, WEBP, GIF (Maks. 5MB)</p>
+                  <p className="text-[11px] font-mono text-zinc-500">FORMAT: JPG, PNG, WEBP, GIF (MAX 5MB)</p>
                 </div>
 
                 <Input
                   label="Nama Lengkap"
                   name="nama"
                   required
-                  icon={User}
+                  icon="fa-solid fa-user"
                   value={formData.nama}
                   onChange={handleChange}
                   placeholder="Masukkan nama lengkap"
@@ -202,16 +199,16 @@ const ProfilePage: React.FC = () => {
                   label="Alamat Email"
                   name="email"
                   disabled
-                  icon={Mail}
+                  icon="fa-solid fa-envelope"
                   value={formData.email}
                   helperText="Alamat email tidak dapat diubah (digunakan untuk login)"
-                  className="bg-slate-50 cursor-not-allowed"
+                  className="bg-zinc-100 text-zinc-500 cursor-not-allowed"
                 />
 
                 <Input
                   label="Nomor WhatsApp / HP"
                   name="no_hp"
-                  icon={Phone}
+                  icon="fa-solid fa-phone"
                   value={formData.no_hp}
                   onChange={handleChange}
                   placeholder="Contoh: 081234567890"
@@ -224,9 +221,9 @@ const ProfilePage: React.FC = () => {
                     value={formData.tipe_membership}
                     onChange={handleChange}
                     options={[
-                      { value: 'reguler', label: 'Reguler Member (Biasa)' },
-                      { value: 'vip', label: 'VIP Member (Prioritas + Diskon Poin)' },
-                      { value: 'corporate', label: 'Corporate Member (Bisnis)' }
+                      { value: 'reguler', label: 'Reguler Member Pass' },
+                      { value: 'vip', label: 'VIP Priority Pass (+ Diskon Poin)' },
+                      { value: 'corporate', label: 'Corporate Team Pass' }
                     ]}
                   />
                 )}
@@ -234,12 +231,12 @@ const ProfilePage: React.FC = () => {
             </div>
 
             {/* Section 2: Security & Password */}
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="border-b border-slate-100 pb-3">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-emerald-600" /> Keamanan Akun & Kata Sandi
+            <div className="space-y-4 pt-4 border-t border-zinc-200">
+              <div className="border-b border-zinc-200 pb-3">
+                <h2 className="text-lg font-display font-extrabold text-zinc-900 uppercase flex items-center gap-2">
+                  <i className="fa-solid fa-lock text-red-600 text-base"></i> KEAMANAN &amp; KATA SANDI
                 </h2>
-                <p className="text-xs text-slate-500">Kosongkan kolom ini jika Anda tidak ingin mengganti kata sandi saat ini.</p>
+                <p className="text-xs text-zinc-500">Kosongkan jika Anda tidak ingin memperbarui password saat ini.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -247,7 +244,7 @@ const ProfilePage: React.FC = () => {
                   label="Kata Sandi Baru"
                   type="password"
                   name="password"
-                  icon={Lock}
+                  icon="fa-solid fa-lock"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
@@ -258,7 +255,7 @@ const ProfilePage: React.FC = () => {
                   label="Konfirmasi Kata Sandi Baru"
                   type="password"
                   name="confirmPassword"
-                  icon={Lock}
+                  icon="fa-solid fa-lock"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
@@ -268,8 +265,8 @@ const ProfilePage: React.FC = () => {
 
             {/* Submit Button */}
             <div className="pt-4 flex justify-end">
-              <Button type="submit" variant="primary" loading={loading} icon={Save} className="px-8">
-                Simpan Perubahan Profil
+              <Button type="submit" variant="primary" loading={loading} icon="fa-solid fa-floppy-disk" className="px-8 py-3 text-sm font-display font-bold uppercase tracking-wider bg-red-600 hover:bg-red-500 shadow-red-glow rounded-2xl">
+                SIMPAN PROFIL MEMBER &rarr;
               </Button>
             </div>
           </form>
@@ -282,3 +279,4 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+

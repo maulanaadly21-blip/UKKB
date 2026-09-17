@@ -4,7 +4,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helperText?: string;
-  icon?: ElementType;
+  icon?: ElementType | string;
   className?: string;
   type?: string;
 }
@@ -21,29 +21,33 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   return (
     <div className="w-full flex flex-col gap-1.5">
       {label && (
-        <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+        <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
           {label}
         </label>
       )}
       <div className="relative flex items-center">
         {Icon && (
-          <div className="absolute left-3.5 text-slate-400 pointer-events-none">
-            <Icon className="w-5 h-5" />
+          <div className="absolute left-3.5 text-zinc-400 pointer-events-none flex items-center justify-center">
+            {typeof Icon === 'string' ? (
+              <i className={`${Icon} text-xs`}></i>
+            ) : (
+              <Icon className="w-4 h-4" />
+            )}
           </div>
         )}
         <input
           ref={ref}
           type={type}
           className={`w-full bg-white border ${
-            error ? 'border-rose-500 focus:ring-rose-200' : 'border-slate-200 focus:border-emerald-600 focus:ring-emerald-100'
-          } rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:ring-4 shadow-sm ${
-            Icon ? 'pl-11' : ''
+            error ? 'border-red-500 focus:ring-red-100' : 'border-zinc-200 focus:border-red-500 focus:ring-red-100'
+          } rounded-2xl px-4 py-2.5 text-xs font-medium text-zinc-900 placeholder-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 shadow-xs ${
+            Icon ? 'pl-10' : ''
           } ${className}`}
           {...props}
         />
       </div>
-      {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
-      {helperText && !error && <p className="text-xs text-slate-500">{helperText}</p>}
+      {error && <p className="text-xs font-medium text-red-600">{error}</p>}
+      {helperText && !error && <p className="text-xs text-zinc-500">{helperText}</p>}
     </div>
   );
 });

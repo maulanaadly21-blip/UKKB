@@ -5,7 +5,6 @@ import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
 import api from '../../api/axios';
 import { useNotification } from '../../context/NotificationContext';
-import { Users, Plus, Search, Edit2, Trash2, User, Building, MapPin, Phone, Lock } from 'lucide-react';
 import { MemberData } from '../../types';
 
 const ManageMembersPage: React.FC = () => {
@@ -113,57 +112,59 @@ const ManageMembersPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="space-y-8 pb-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-              <Users className="w-6 h-6 text-emerald-700" /> Kelola Data Member / Pelanggan
+            <span className="studio-badge">MEMBER MANAGEMENT</span>
+            <h1 className="text-3xl font-display font-black uppercase text-zinc-900 tracking-tight mt-1 flex items-center gap-2">
+              <i className="fa-solid fa-users text-red-600 text-2xl"></i> DATA MEMBER &amp; PELANGGAN
             </h1>
-            <p className="text-xs text-slate-500">Manajemen akun member coworking space (Bagian 8 PDF Spec)</p>
+            <p className="text-xs text-zinc-500 font-medium">Manajemen profil akun member Studio Eleven</p>
           </div>
 
-          <Button variant="primary" icon={Plus} onClick={handleOpenAdd}>
-            Tambah Member Baru
+          <Button variant="primary" icon="fa-solid fa-plus" onClick={handleOpenAdd} className="bg-red-600 hover:bg-red-500 text-white font-display font-bold uppercase tracking-wider shadow-red-glow rounded-2xl py-3 px-5">
+            TAMBAH MEMBER BARU &rarr;
           </Button>
         </div>
 
         {/* Search Bar */}
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <Input
-            placeholder="Cari berdasarkan nama, instansi, atau telp..."
+            placeholder="Cari berdasarkan nama, instansi, atau nomor telepon..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            icon={Search}
+            icon="fa-solid fa-magnifying-glass"
+            className="bg-white border-zinc-200 rounded-2xl"
           />
-          <Button type="submit" variant="outline">
-            Cari
-          </Button>
+          <button type="submit" className="px-5 bg-zinc-950 hover:bg-black text-white rounded-2xl text-xs font-display font-bold uppercase tracking-wider cursor-pointer">
+            CARI
+          </button>
         </form>
 
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-slate-200/60 rounded-2xl animate-pulse"></div>
+              <div key={i} className="h-24 bg-zinc-100 rounded-3xl animate-pulse"></div>
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-soft">
+          <div className="overflow-x-auto border border-zinc-200 rounded-3xl bg-white shadow-soft">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-zinc-950 text-zinc-300 font-display font-bold uppercase tracking-wider border-b border-zinc-800">
                 <tr>
-                  <th className="px-4 py-3">Member</th>
-                  <th className="px-4 py-3">Instansi / Organisasi</th>
-                  <th className="px-4 py-3">Alamat Domisili</th>
-                  <th className="px-4 py-3">No. Telepon</th>
-                  <th className="px-4 py-3 text-right">Aksi</th>
+                  <th className="px-5 py-4">MEMBER</th>
+                  <th className="px-5 py-4">INSTANSI / ORGANISASI</th>
+                  <th className="px-5 py-4">ALAMAT DOMISILI</th>
+                  <th className="px-5 py-4">NO. TELEPON</th>
+                  <th className="px-5 py-4 text-right">AKSI</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium">
+              <tbody className="divide-y divide-zinc-100 font-medium">
                 {members.map((m: any) => (
-                  <tr key={m.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
+                  <tr key={m.id} className="hover:bg-zinc-50 transition-colors">
+                    <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center overflow-hidden shrink-0 border border-emerald-200">
+                        <div className="w-10 h-10 rounded-2xl bg-zinc-950 text-white font-display font-black text-sm flex items-center justify-center overflow-hidden shrink-0 border border-zinc-800">
                           {m.foto ? (
                             <img src={m.foto.startsWith('http') ? m.foto : `http://localhost:5001/uploads/members/${m.foto}`} alt={m.nama_member} className="w-full h-full object-cover" />
                           ) : (
@@ -171,26 +172,26 @@ const ManageMembersPage: React.FC = () => {
                           )}
                         </div>
                         <div>
-                          <span className="font-bold text-slate-900 block">{m.nama_member}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">ID #{m.id}</span>
+                          <span className="font-display font-bold text-zinc-900 block text-sm uppercase">{m.nama_member}</span>
+                          <span className="text-[10px] text-zinc-400 font-mono">ID #{m.id}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-slate-700">{m.instansi}</td>
-                    <td className="px-4 py-3 text-slate-600 max-w-xs truncate">{m.alamat}</td>
-                    <td className="px-4 py-3 font-mono font-bold text-slate-800">{m.telp}</td>
-                    <td className="px-4 py-3 text-right space-x-1">
+                    <td className="px-5 py-4 font-semibold text-zinc-700">{m.instansi}</td>
+                    <td className="px-5 py-4 text-zinc-600 max-w-xs truncate">{m.alamat}</td>
+                    <td className="px-5 py-4 font-mono font-bold text-zinc-800">{m.telp}</td>
+                    <td className="px-5 py-4 text-right space-x-1">
                       <button
                         onClick={() => handleOpenEdit(m)}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg cursor-pointer"
+                        className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <i className="fa-solid fa-pen-to-square text-sm"></i>
                       </button>
                       <button
                         onClick={() => handleDeleteMember(m.id)}
-                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg cursor-pointer"
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <i className="fa-solid fa-trash-can text-sm"></i>
                       </button>
                     </td>
                   </tr>
@@ -204,7 +205,7 @@ const ManageMembersPage: React.FC = () => {
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingMember ? 'Edit Data Member' : 'Tambah Data Member Baru'}
+        title={editingMember ? 'EDIT DATA MEMBER' : 'TAMBAH DATA MEMBER BARU'}
         maxWidth="max-w-md"
       >
         <form onSubmit={handleSaveMember} className="space-y-4">
@@ -213,7 +214,7 @@ const ManageMembersPage: React.FC = () => {
               label="Username Login Member"
               required
               placeholder="e.g. user_budi"
-              icon={User}
+              icon="fa-solid fa-user"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             />
@@ -223,7 +224,7 @@ const ManageMembersPage: React.FC = () => {
             label="Nama Lengkap Member"
             required
             placeholder="e.g. Budi Raharjo"
-            icon={User}
+            icon="fa-solid fa-user"
             value={formData.nama_member}
             onChange={(e) => setFormData({ ...formData, nama_member: e.target.value })}
           />
@@ -232,7 +233,7 @@ const ManageMembersPage: React.FC = () => {
             label="Instansi / Organisasi"
             required
             placeholder="e.g. SMK Telkom Malang"
-            icon={Building}
+            icon="fa-solid fa-building"
             value={formData.instansi}
             onChange={(e) => setFormData({ ...formData, instansi: e.target.value })}
           />
@@ -241,7 +242,7 @@ const ManageMembersPage: React.FC = () => {
             label="Alamat Lengkap"
             required
             placeholder="e.g. Jl. Danau Ranau No. 1, Malang"
-            icon={MapPin}
+            icon="fa-solid fa-location-dot"
             value={formData.alamat}
             onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
           />
@@ -251,7 +252,7 @@ const ManageMembersPage: React.FC = () => {
             type="tel"
             required
             placeholder="e.g. 085712345678"
-            icon={Phone}
+            icon="fa-solid fa-phone"
             value={formData.telp}
             onChange={(e) => setFormData({ ...formData, telp: e.target.value })}
           />
@@ -261,18 +262,18 @@ const ManageMembersPage: React.FC = () => {
             type="password"
             required={!editingMember}
             placeholder="Secret123!"
-            icon={Lock}
+            icon="fa-solid fa-lock"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
           />
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <Button variant="outline" onClick={() => setModalOpen(false)} type="button">
-              Batal
-            </Button>
-            <Button variant="primary" type="submit" loading={saving}>
-              Simpan Member
-            </Button>
+          <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200">
+            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-xs font-mono font-bold uppercase cursor-pointer">
+              BATAL
+            </button>
+            <button type="submit" disabled={saving} className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-display font-bold uppercase tracking-wider cursor-pointer shadow-red-glow">
+              SIMPAN MEMBER &rarr;
+            </button>
           </div>
         </form>
       </Modal>
@@ -281,3 +282,4 @@ const ManageMembersPage: React.FC = () => {
 };
 
 export default ManageMembersPage;
+
