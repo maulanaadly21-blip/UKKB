@@ -1,30 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
-import confetti from 'canvas-confetti';
 import MemberLayout from '../../components/layout/MemberLayout';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
-import { getImageUrl } from '../../utils/image';
-import { Space, Discount } from '../../types';
-import {
-  Calendar,
-  Clock,
-  Tag,
-  ShieldCheck,
-  CheckCircle2,
-  Users,
-  Hourglass,
-  Lock,
-  ArrowRight,
-  Wifi,
-  Coffee,
-  Tv,
-  Building,
-  Sparkles,
-  CreditCard,
-  QrCode
-} from 'lucide-react';
+import { Space, PromoDiskon } from '../../types';
 
 const CheckoutPage: React.FC = () => {
   const { spaceId } = useParams<{ spaceId: string }>();
@@ -34,44 +14,33 @@ const CheckoutPage: React.FC = () => {
   const { showSuccess, showError } = useNotification();
 
   const queryDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
-  const queryStart = searchParams.get('start') || '09:00';
-  const queryDuration = parseInt(searchParams.get('duration') || '2', 10);
 
   const [space, setSpace] = useState<Space | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Form State
-  const [namaLengkap, setNamaLengkap] = useState<string>(user?.nama || user?.nama_member || '');
-  const [emailBisnis, setEmailBisnis] = useState<string>(user?.email || '');
-  const [whatsapp, setWhatsapp] = useState<string>(user?.telp || user?.no_hp || '');
-  const [instansi, setInstansi] = useState<string>(user?.member?.instansi || '');
+  const [namaLengkap, setNamaLengkap] = useState<string>(user?.nama || 'Bambang Wicaksono');
+  const [emailBisnis, setEmailBisnis] = useState<string>(user?.email || 'bambang.w@company.id');
+  const [whatsapp, setWhatsapp] = useState<string>(user?.telp || '+62 812 9876 5432');
+  const [instansi, setInstansi] = useState<string>('PT Solusi Digital Nusantara');
 
   const [tanggalPemakaian, setTanggalPemakaian] = useState<string>(queryDate);
-  const [waktuMulai, setWaktuMulai] = useState<string>(queryStart);
-  const [durasiPilihan, setDurasiPilihan] = useState<number>(queryDuration || 2);
-  const [catatan, setCatatan] = useState<string>('');
+  const [waktuMulai, setWaktuMulai] = useState<string>('10:00');
+  const [durasiPilihan, setDurasiPilihan] = useState<number>(2); // 1, 2, 3, 8
+  const [jumlahPeserta, setJumlahPeserta] = useState<number>(6);
+  const [catatan, setCatatan] = useState<string>('Siapkan kabel converter HDMI to Type-C dan proyektor tambahan.');
 
-  const [kodePromo, setKodePromo] = useState<string>('');
-  const [appliedPromo, setAppliedPromo] = useState<Discount | null>(null);
-  const [checkingPromo, setCheckingPromo] = useState<boolean>(false);
+  const [kodePromo, setKodePromo] = useState<string>('SMARTWORK20');
+  const [appliedPromo, setAppliedPromo] = useState<Partial<PromoDiskon> | null>({ nama_diskon: 'SMARTWORK20', persentase_diskon: 20 });
   const [metodePembayaran, setMetodePembayaran] = useState<string>('qris');
   const [agreeTerms, setAgreeTerms] = useState<boolean>(true);
-
-  useEffect(() => {
-    if (user) {
-      if (!namaLengkap) setNamaLengkap(user.nama || user.nama_member || user.username);
-      if (!emailBisnis) setEmailBisnis(user.email || '');
-      if (!whatsapp) setWhatsapp(user.telp || user.no_hp || '');
-      if (!instansi && user.member?.instansi) setInstansi(user.member.instansi);
-    }
-  }, [user]);
 
   useEffect(() => {
     const fetchSpace = async () => {
       try {
         const res = await api.get(`/spaces/${spaceId}`);
-        if (res.data && (res.data.status || res.data.statusCode === 200)) {
+        if (res.data && res.data.status) {
           setSpace(res.data.data);
         }
       } catch {
@@ -86,82 +55,49 @@ const CheckoutPage: React.FC = () => {
     }
   }, [spaceId, navigate, showError]);
 
-  const hargaPerJam = space ? space.harga_per_jam : 25000;
+  const hargaPerJam = space ? space.harga_per_jam : 200000;
   const tarifDasar = hargaPerJam * durasiPilihan;
-  const persenDiskon = appliedPromo ? (appliedPromo.persentase_diskon || appliedPromo.persen_diskon || 0) : 0;
-  const potonganDiskon = Math.round((tarifDasar * persenDiskon) / 100);
-  const totalPembayaran = Math.max(0, tarifDasar - potonganDiskon);
-
-  // Calculate End Time
-  const calculateEndTime = () => {
-    const [h, m] = waktuMulai.split(':').map(Number);
-    const endH = (h + durasiPilihan) % 24;
-    return `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
-  };
+  const potonganDiskon = appliedPromo && appliedPromo.persentase_diskon ? (tarifDasar * appliedPromo.persentase_diskon) / 100 : 0;
+  const ppn = Math.round((tarifDasar - potonganDiskon) * 0.11);
+  const totalPembayaran = Math.max(0, tarifDasar - potonganDiskon + ppn);
 
   const handleApplyPromo = async () => {
     if (!kodePromo.trim()) return;
-    setCheckingPromo(true);
     try {
-      const res = await api.post('/diskon/check', { nama_diskon: kodePromo.trim().toUpperCase() });
-      if (res.data && (res.data.status || res.data.statusCode === 200)) {
-        const diskonObj = res.data.data?.diskon || res.data.data;
-        setAppliedPromo(diskonObj);
-        const discountPct = diskonObj.persentase_diskon || diskonObj.persen_diskon || 0;
-        showSuccess(`Voucher ${diskonObj.nama_diskon || kodePromo} (${discountPct}%) berhasil dipasang!`);
-      } else {
-        throw new Error(res.data?.message || 'Kode promo tidak valid');
+      const res = await api.post('/diskon/check', { nama_diskon: kodePromo.trim() });
+      if (res.data && res.data.status) {
+        setAppliedPromo(res.data.data);
+        showSuccess(`Voucher ${res.data.data.nama_diskon} berhasil dipasang!`);
       }
     } catch (err: any) {
-      showError(err.response?.data?.message || err.message || 'Kode promo tidak valid atau telah kedaluwarsa');
+      showError(err.response?.data?.message || 'Kode promo tidak valid');
       setAppliedPromo(null);
-    } finally {
-      setCheckingPromo(false);
     }
   };
 
   const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreeTerms) {
-      showError('Harap setujui Syarat & Ketentuan reservasi');
+      showError('Anda harus menyetujui Syarat & Ketentuan terlebih dahulu');
       return;
     }
     setSubmitting(true);
     try {
-      const payload: any = {
+      const payload = {
         id_space: Number(spaceId),
         tanggal_reservasi: tanggalPemakaian,
         jam_mulai: waktuMulai,
-        durasi_jam: Number(durasiPilihan)
+        durasi_jam: Number(durasiPilihan),
+        kode_promo: appliedPromo ? appliedPromo.nama_diskon : null
       };
 
-      if (appliedPromo) {
-        if (appliedPromo.id) payload.id_diskon = appliedPromo.id;
-        if (appliedPromo.nama_diskon || appliedPromo.kode_promo) {
-          payload.kode_promo = appliedPromo.nama_diskon || appliedPromo.kode_promo;
-        }
-      }
-
       const res = await api.post('/reservasi', payload);
-      if (res.data && (res.data.status || res.data.statusCode === 201 || res.data.statusCode === 200)) {
-        // Burst celebratory confetti
-        try {
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-        } catch {
-          // ignore if canvas confetti fails
-        }
-
-        showSuccess('Pemesanan berhasil dikonfirmasi! Tiket & QR Code Anda telah aktif.');
+      if (res.data && res.data.status) {
+        showSuccess('Reservasi berhasil dibuat! Mengalihkan ke E-Ticket...');
         navigate('/reservations');
-      } else {
-        throw new Error(res.data?.message || 'Gagal membuat reservasi');
       }
     } catch (err: any) {
-      showError(err.response?.data?.message || err.message || 'Gagal membuat reservasi. Pastikan jadwal tidak bentrok.');
+      showError(err.response?.data?.message || 'Gagal membuat reservasi');
     } finally {
       setSubmitting(false);
     }
@@ -170,60 +106,58 @@ const CheckoutPage: React.FC = () => {
   if (loading) {
     return (
       <MemberLayout>
-        <div className="max-w-6xl mx-auto py-16 text-center text-slate-500 font-medium">
+        <div className="max-w-6xl mx-auto py-12 text-center text-slate-500 font-medium">
           Memuat rincian pemesanan...
         </div>
       </MemberLayout>
     );
   }
 
-  const spaceName = space?.nama_space || space?.nama_ruangan || 'Workspace';
-  const spaceLocation = space?.nama_coworking || 'Moklet Hub Coworking';
-  const spaceThumb = getImageUrl(space?.foto_url || space?.foto || space?.foto_ruangan, 'spaces') ||
-    'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80';
+  const spaceName = space?.nama_space || space?.nama_ruangan || 'Glasshouse Meeting Room';
+  const spaceLocation = space?.nama_coworking || 'SCBD Tower Lt. 4, Jakarta Selatan';
 
   return (
     <MemberLayout>
       <div className="max-w-6xl mx-auto space-y-8 -mt-2 pb-16">
         {/* Header Breadcrumb & Step Progress Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-b border-slate-200/80 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-b border-slate-100 pb-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
               <Link to="/" className="hover:text-slate-600">Beranda</Link>
               <span>&gt;</span>
               <Link to="/ruang" className="hover:text-slate-600">{spaceName}</Link>
               <span>&gt;</span>
-              <span className="text-[#0F382C] font-bold">Konfirmasi Reservasi</span>
+              <span className="text-red-600 font-bold">Reservasi</span>
             </div>
-            <span className="text-[10px] font-extrabold tracking-widest uppercase text-[#0F382C] block">
-              FINALISASI PEMESANAN
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-red-600 block">
+              - LANGKAH VERIFIKASI
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Rincian & Pembayaran Reservasi
+            <h1 className="text-2xl sm:text-3xl font-display font-black text-zinc-900 uppercase tracking-tight">
+              Konfirmasi &amp; Rincian Reservasi
             </h1>
           </div>
 
           {/* 3 Step Progress Pills */}
-          <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-2xs text-xs font-bold">
-            <div className="flex items-center gap-1.5 text-emerald-700">
-              <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px]">
-                ✓
+          <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-zinc-200/80 shadow-soft">
+            <div className="flex items-center gap-2 text-xs font-bold text-red-600">
+              <span className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-[11px] font-mono">
+                1
               </span>
-              <span>Pilih Ruang</span>
+              <span className="font-display uppercase tracking-wider">Detail Pesanan</span>
             </div>
-            <span className="text-slate-300">──</span>
-            <div className="flex items-center gap-1.5 text-[#0F382C]">
-              <span className="w-5 h-5 rounded-full bg-[#0F382C] text-white flex items-center justify-center text-[10px]">
+            <span className="text-zinc-300">──</span>
+            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400">
+              <span className="w-6 h-6 rounded-full bg-zinc-100 text-zinc-500 flex items-center justify-center text-[11px] font-mono">
                 2
               </span>
-              <span>Konfirmasi</span>
+              <span className="font-display uppercase tracking-wider">Pembayaran</span>
             </div>
-            <span className="text-slate-300">──</span>
-            <div className="flex items-center gap-1.5 text-slate-400 font-semibold">
-              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px]">
+            <span className="text-zinc-300">──</span>
+            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400">
+              <span className="w-6 h-6 rounded-full bg-zinc-100 text-zinc-500 flex items-center justify-center text-[11px] font-mono">
                 3
               </span>
-              <span>E-Ticket</span>
+              <span className="font-display uppercase tracking-wider">E-Ticket</span>
             </div>
           </div>
         </div>
@@ -232,21 +166,21 @@ const CheckoutPage: React.FC = () => {
           {/* ================= LEFT COLUMN: FORM SECTIONS ================= */}
           <div className="lg:col-span-7 space-y-6">
             {/* Top Guarantee Alert */}
-            <div className="bg-[#E6F4F1] border border-emerald-200 rounded-2xl p-4 flex items-start gap-3 text-xs text-[#0F382C] font-medium">
-              <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5 text-emerald-700" />
+            <div className="bg-zinc-950 border border-zinc-800 text-white rounded-2xl p-4 flex items-start gap-3 text-xs font-medium shadow-studio">
+              <i className="fa-solid fa-shield-halved text-red-500 text-base shrink-0 mt-0.5"></i>
               <div>
-                <strong className="font-extrabold block text-slate-900">Slot Ruangan Dijamin</strong>
-                Reservasi terhubung langsung dengan sistem ketersediaan coworking space secara real-time.
+                <strong className="font-display font-bold uppercase tracking-wider block text-white">KETERSEDIAAN TERJAMIN — STUDIO PASS</strong>
+                Slot ruang {spaceName} disimpan khusus untuk Anda selama 15 menit ke depan.
               </div>
             </div>
 
             {/* Section 1: Informasi Pemesan */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#0F382C]" /> Informasi Pemesan
+            <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-soft space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+                <h3 className="text-base font-display font-extrabold uppercase text-zinc-900 flex items-center gap-2">
+                  <i className="fa-solid fa-users text-red-600 text-sm"></i> Informasi Pemesan
                 </h3>
-                <span className="text-[10px] text-slate-400 font-semibold uppercase">Data Pelanggan</span>
+                <span className="text-[10px] text-zinc-400 font-mono uppercase">PROFIL UTAMA</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -257,111 +191,98 @@ const CheckoutPage: React.FC = () => {
                     required
                     value={namaLengkap}
                     onChange={(e) => setNamaLengkap(e.target.value)}
-                    placeholder="Nama pemesan"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0F382C]"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-red-500"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Email Akun*</label>
+                  <label className="text-xs font-bold text-slate-700">Alamat Email Bisnis*</label>
                   <input
                     type="email"
                     required
                     value={emailBisnis}
                     onChange={(e) => setEmailBisnis(e.target.value)}
-                    placeholder="email@domain.com"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0F382C]"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-red-500"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Nomor Telepon / WhatsApp*</label>
+                  <label className="text-xs font-bold text-slate-700">Nomor WhatsApp Aktif*</label>
                   <input
-                    type="tel"
+                    type="text"
                     required
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="081234567890"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0F382C]"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-red-500"
                   />
+                  <p className="text-[10px] text-slate-400">E-Ticket dan QR check-in akan dikirim ke nomor ini.</p>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Instansi / Organisasi</label>
+                  <label className="text-xs font-bold text-slate-700">Instansi / Perusahaan</label>
                   <input
                     type="text"
                     value={instansi}
                     onChange={(e) => setInstansi(e.target.value)}
-                    placeholder="e.g. SMK Telkom / PT Maju"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0F382C]"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-red-500"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Section 2: Jadwal & Waktu */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-4">
+            {/* Section 2: Detail Jadwal & Waktu */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#0F382C]" /> Detail Jadwal & Waktu
+                  <i className="fa-solid fa-calendar text-red-600 text-sm"></i> Detail Jadwal &amp; Waktu
                 </h3>
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#E6F4F1] text-[#0F382C]">
-                  • Terpilih
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-600">
+                  • Tersedia
                 </span>
               </div>
 
               {/* Ruang Dipilih Box */}
-              <div className="bg-[#E6F4F1]/60 border border-emerald-200/60 rounded-xl p-3.5 flex items-center justify-between">
+              <div className="bg-zinc-50 border border-zinc-200/80 rounded-xl p-3.5 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-400 font-semibold uppercase block">Ruang Dipilih</span>
-                  <p className="text-xs font-black text-slate-900">{spaceName} ({spaceLocation})</p>
+                  <p className="text-xs font-black text-slate-900">{spaceName} (SCBD Tower)</p>
                 </div>
-                <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white text-slate-700 border border-slate-200 uppercase">
-                  {space?.tipe || 'desk'}
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white text-slate-700 border border-slate-200">
+                  Lantai-4
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Tanggal Reservasi</label>
+                  <label className="text-xs font-bold text-slate-700">Tanggal Pemakaian</label>
                   <input
                     type="date"
-                    required
                     value={tanggalPemakaian}
-                    min={new Date().toISOString().split('T')[0]}
                     onChange={(e) => setTanggalPemakaian(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0F382C]"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-red-500"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700">Waktu Mulai</label>
-                  <select
+                  <input
+                    type="time"
                     value={waktuMulai}
                     onChange={(e) => setWaktuMulai(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0F382C]"
-                  >
-                    <option value="08:00">08:00 WIB</option>
-                    <option value="09:00">09:00 WIB</option>
-                    <option value="10:00">10:00 WIB</option>
-                    <option value="11:00">11:00 WIB</option>
-                    <option value="13:00">13:00 WIB</option>
-                    <option value="14:00">14:00 WIB</option>
-                    <option value="15:00">15:00 WIB</option>
-                    <option value="18:00">18:00 WIB</option>
-                  </select>
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-red-500"
+                  />
                 </div>
               </div>
 
-              {/* Durasi Pemakaian Buttons */}
+              {/* Durasi Pemakaian Pills */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 block">Durasi Pemakaian</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { hours: 1, label: '1 Jam', sub: 'Sewa Kilat' },
-                    { hours: 2, label: '2 Jam', sub: 'Rapat / Kerja' },
-                    { hours: 4, label: '4 Jam', sub: 'Setengah Hari' },
-                    { hours: 8, label: '8 Jam', sub: 'Full Day' }
+                    { hours: 2, label: '2 Jam', sub: 'Rapat Standar' },
+                    { hours: 3, label: '3 Jam', sub: 'Workshop Tim' },
+                    { hours: 8, label: 'Seharian', sub: 'Full Day (8 Jam)' }
                   ].map((dur) => (
                     <button
                       key={dur.hours}
@@ -369,12 +290,12 @@ const CheckoutPage: React.FC = () => {
                       onClick={() => setDurasiPilihan(dur.hours)}
                       className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
                         durasiPilihan === dur.hours
-                          ? 'bg-[#0F382C] text-white border-[#0F382C] shadow-xs'
+                          ? 'bg-zinc-950 text-white border-zinc-950 shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       <p className="text-xs font-black">{dur.label}</p>
-                      <p className={`text-[10px] ${durasiPilihan === dur.hours ? 'text-emerald-200' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] ${durasiPilihan === dur.hours ? 'text-red-400' : 'text-slate-400'}`}>
                         {dur.sub}
                       </p>
                     </button>
@@ -382,20 +303,64 @@ const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Estimasi Selesai Card */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-slate-400 font-semibold uppercase block">Estimasi Jadwal Selesai</span>
-                  <p className="text-sm font-black text-slate-900">{calculateEndTime()} WIB</p>
+              {/* Estimasi Selesai & Stepper Peserta */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase block">Estimasi Selesai</span>
+                    <p className="text-sm font-black text-slate-900">12:00 WIB</p>
+                  </div>
+                  <i className="fa-solid fa-hourglass-half text-slate-400 text-base"></i>
                 </div>
-                <Hourglass className="w-5 h-5 text-slate-400" />
+
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase block">Jumlah Peserta</span>
+                    <div className="flex items-center gap-3 mt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setJumlahPeserta(Math.max(1, jumlahPeserta - 1))}
+                        className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs"
+                      >
+                        -
+                      </button>
+                      <span className="text-xs font-black text-slate-900">{jumlahPeserta} Orang</span>
+                      <button
+                        type="button"
+                        onClick={() => setJumlahPeserta(Math.min(8, jumlahPeserta + 1))}
+                        className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">Kapasitas Maks. 8</span>
+                </div>
               </div>
             </div>
 
-            {/* Section 3: Kode Promo & Diskon */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-3">
+            {/* Section 3: Catatan Tambahan */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="text-base font-extrabold text-slate-900">Catatan Tambahan</h3>
+                <span className="text-[10px] text-slate-400 font-semibold uppercase">Opsional</span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium">
+                Kebutuhan spesifik, perlengkapan AV, atau preferensi susunan meja:
+              </p>
+              <textarea
+                rows={3}
+                value={catatan}
+                onChange={(e) => setCatatan(e.target.value)}
+                placeholder="Siapkan kabel converter HDMI to Type-C dan proyektor tambahan."
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-red-500"
+              ></textarea>
+            </div>
+
+            {/* Section 4: Kode Promo & Voucher */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-2xs space-y-3">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <Tag className="w-4 h-4 text-[#0F382C]" /> Kode Promo & Diskon
+                <i className="fa-solid fa-tag text-red-600 text-sm"></i> Kode Promo &amp; Voucher
               </h3>
 
               <div className="flex gap-2">
@@ -403,35 +368,22 @@ const CheckoutPage: React.FC = () => {
                   type="text"
                   value={kodePromo}
                   onChange={(e) => setKodePromo(e.target.value.toUpperCase())}
-                  placeholder="Contoh: PROMOAGUSTUS"
-                  className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[#0F382C]"
+                  placeholder="SMARTWORK20"
+                  className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-red-500"
                 />
                 <button
                   type="button"
-                  disabled={checkingPromo || !kodePromo.trim()}
                   onClick={handleApplyPromo}
-                  className="px-6 py-3 bg-[#0F382C] hover:bg-[#0b2b22] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer transition-all"
+                  className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white text-xs font-display font-bold uppercase tracking-wider rounded-2xl shadow-red-glow cursor-pointer transition-colors"
                 >
-                  {checkingPromo ? 'Mengecek...' : 'Terapkan'}
+                  TERAPKAN
                 </button>
               </div>
 
               {appliedPromo && (
-                <div className="bg-[#E6F4F1] border border-emerald-200 rounded-xl p-3 flex items-center justify-between text-xs font-bold text-[#0F382C]">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Diskon {persenDiskon}% aktif! Potongan Rp {potonganDiskon.toLocaleString('id-ID')}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAppliedPromo(null);
-                      setKodePromo('');
-                    }}
-                    className="text-slate-400 hover:text-slate-600 text-xs font-medium cursor-pointer"
-                  >
-                    Hapus
-                  </button>
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-3.5 flex items-center gap-2 text-xs font-bold text-red-900">
+                  <i className="fa-solid fa-circle-check text-red-600 text-sm shrink-0"></i>
+                  <span>Promo hemat 20% berhasil dipasang! (Hemat Rp {potonganDiskon.toLocaleString('id-ID')})</span>
                 </div>
               )}
             </div>
@@ -439,122 +391,135 @@ const CheckoutPage: React.FC = () => {
 
           {/* ================= RIGHT COLUMN: STICKY SUMMARY CARD ================= */}
           <div className="lg:col-span-5 space-y-4 sticky top-24">
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-lg space-y-5">
+            <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 shadow-soft space-y-5">
               {/* Space Header */}
               <div className="flex items-center gap-3">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800">
                   <img
-                    src={spaceThumb}
+                    src={space?.foto_url || 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80'}
                     alt={spaceName}
                     className="w-full h-full object-cover"
-                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                      const target = e.currentTarget;
-                      target.onerror = null;
-                      target.src = 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80';
-                    }}
                   />
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
-                    {space?.tipe?.toUpperCase() || 'SPACE'}
+                  <span className="text-[10px] font-mono font-bold text-red-600 uppercase tracking-widest block">
+                    EXECUTIVE SUITE
                   </span>
-                  <h3 className="text-base font-extrabold text-slate-900 leading-snug">{spaceName}</h3>
-                  <p className="text-xs text-slate-500 font-medium">{spaceLocation}</p>
+                  <h3 className="text-base font-display font-black text-zinc-900 leading-snug uppercase">{spaceName}</h3>
+                  <p className="text-xs text-zinc-500 font-medium">{spaceLocation}</p>
                 </div>
               </div>
 
               {/* Date Badge */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs font-bold text-slate-700">
+              <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-3 flex items-center justify-between text-xs font-bold text-zinc-800 font-display">
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  {tanggalPemakaian}
+                  <i className="fa-solid fa-calendar text-red-500 text-xs"></i>
+                  Rabu, 15 Jan 2025
                 </span>
-                <span className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  {waktuMulai} - {calculateEndTime()} WIB
+                <span className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-zinc-200 font-mono text-[11px]">
+                  <i className="fa-solid fa-clock text-red-500 text-xs"></i>
+                  10:00 - 12:00 WIB
                 </span>
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-2.5 text-xs border-t border-b border-slate-100 py-4">
-                <div className="flex justify-between text-slate-600">
+              <div className="space-y-2.5 text-xs border-t border-b border-zinc-100 py-4 font-medium">
+                <div className="flex justify-between text-zinc-600">
                   <span>Tarif Dasar (Rp {hargaPerJam.toLocaleString('id-ID')} x {durasiPilihan} jam)</span>
-                  <span className="font-bold text-slate-900">Rp {tarifDasar.toLocaleString('id-ID')}</span>
+                  <span className="font-bold text-zinc-900">Rp {tarifDasar.toLocaleString('id-ID')}</span>
                 </div>
 
                 {potonganDiskon > 0 && (
-                  <div className="flex justify-between items-center text-emerald-800 font-bold">
+                  <div className="flex justify-between items-center text-red-600 font-bold">
                     <span className="flex items-center gap-1">
-                      Diskon Promo <span className="bg-emerald-100 text-[#0F382C] px-1.5 py-0.5 rounded text-[10px] font-mono">{appliedPromo?.nama_diskon || kodePromo}</span>
+                      Diskon Promo <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded text-[10px] font-mono">SMARTWORK20</span>
                     </span>
                     <span>- Rp {potonganDiskon.toLocaleString('id-ID')}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-slate-600">
-                  <span>Biaya Layanan & Fasilitas</span>
-                  <span className="font-bold text-emerald-700">Rp 0 (Termasuk)</span>
+                <div className="flex justify-between text-zinc-600">
+                  <span>Biaya Layanan &amp; Pemeliharaan</span>
+                  <span className="font-bold text-red-600">Rp 0 (Gratis)</span>
+                </div>
+
+                <div className="flex justify-between text-zinc-600">
+                  <span>PPN (11%)</span>
+                  <span className="font-bold text-slate-900">Rp {ppn.toLocaleString('id-ID')}</span>
                 </div>
               </div>
 
               {/* Total Pembayaran */}
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-slate-900 block">Total Biaya Reservasi</span>
-                  <span className="text-[10px] text-slate-400 font-medium">Berdasarkan durasi sewa</span>
+                  <span className="text-xs font-bold text-slate-900 block">Total Pembayaran</span>
+                  <span className="text-[10px] text-slate-400 font-medium">Termasuk pajak & layanan</span>
                 </div>
-                <p className="text-2xl font-black text-[#0F382C]">
+                <p className="text-2xl font-display font-black text-red-600">
                   Rp {totalPembayaran.toLocaleString('id-ID')}
                 </p>
               </div>
 
               {/* Metode Pembayaran Options */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="text-xs font-bold text-slate-700 block">Metode Konfirmasi Pembayaran</label>
+                <label className="text-xs font-bold text-slate-700 block">Pilih Metode Pembayaran</label>
                 
                 <div className="space-y-2">
                   <label
                     onClick={() => setMetodePembayaran('qris')}
-                    className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs font-bold cursor-pointer transition-all ${
                       metodePembayaran === 'qris'
-                        ? 'bg-[#E6F4F1]/60 border-[#0F382C] text-[#0F382C]'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                        ? 'bg-red-50 border-red-500 text-red-600'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <input type="radio" checked={metodePembayaran === 'qris'} readOnly className="accent-[#0F382C]" />
-                      <span>QRIS Instan (BCA, Mandiri, Gopay, OVO)</span>
+                      <input type="radio" checked={metodePembayaran === 'qris'} readOnly className="accent-red-600" />
+                      <span>QRIS Instant (Gopay / ShopeePay / Dana / LinkAja)</span>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-[#0F382C]">Otomatis</span>
                   </label>
 
                   <label
-                    onClick={() => setMetodePembayaran('tunai')}
-                    className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                      metodePembayaran === 'tunai'
-                        ? 'bg-[#E6F4F1]/60 border-[#0F382C] text-[#0F382C]'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    onClick={() => setMetodePembayaran('va')}
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs font-bold cursor-pointer transition-all ${
+                      metodePembayaran === 'va'
+                        ? 'bg-red-50 border-red-500 text-red-600'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <input type="radio" checked={metodePembayaran === 'tunai'} readOnly className="accent-[#0F382C]" />
-                      <span>Bayar di Tempat (Kasir / Resepsionis)</span>
+                      <input type="radio" checked={metodePembayaran === 'va'} readOnly className="accent-red-600" />
+                      <span>Virtual Account (BCA / Mandiri / BNI)</span>
+                    </div>
+                  </label>
+
+                  <label
+                    onClick={() => setMetodePembayaran('card')}
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs font-bold cursor-pointer transition-all ${
+                      metodePembayaran === 'card'
+                        ? 'bg-red-50 border-red-500 text-red-600'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input type="radio" checked={metodePembayaran === 'card'} readOnly className="accent-red-600" />
+                      <span>Kartu Kredit / Debit Visa &amp; Mastercard</span>
                     </div>
                   </label>
                 </div>
               </div>
 
               {/* Checkbox Terms */}
-              <div className="pt-2 flex items-start gap-2.5 text-xs text-slate-600">
+              <div className="pt-2 flex items-start gap-2.5 text-xs text-zinc-600">
                 <input
                   type="checkbox"
                   id="agreeTerms"
                   checked={agreeTerms}
                   onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="mt-0.5 accent-[#0F382C] rounded cursor-pointer"
+                  className="mt-0.5 accent-red-600 rounded cursor-pointer"
                 />
-                <label htmlFor="agreeTerms" className="cursor-pointer text-[11px] leading-tight text-slate-600">
-                  Saya menyetujui jadwal sewa serta tata tertib ruangan coworking space.
+                <label htmlFor="agreeTerms" className="cursor-pointer text-[11px] leading-tight">
+                  Saya menyetujui Syarat &amp; Ketentuan serta Tata Tertib Ruang Kerja Studio Eleven.
                 </label>
               </div>
 
@@ -562,16 +527,32 @@ const CheckoutPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 bg-[#0F382C] hover:bg-[#0b2b22] disabled:opacity-50 text-white rounded-xl font-extrabold text-sm shadow-md transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-red-glow transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>{submitting ? 'Memproses Reservasi...' : 'Konfirmasi & Buat Reservasi'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>{submitting ? 'Memproses Reservasi...' : 'Konfirmasi & Bayar Sekarang'}</span>
+                <i className="fa-solid fa-arrow-right text-xs"></i>
               </button>
 
-              <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-                <Lock className="w-3.5 h-3.5 text-slate-400" />
-                Data reservasi terisolasi aman dengan App Maker Key.
+              <p className="text-[11px] text-zinc-400 text-center flex items-center justify-center gap-1">
+                <i className="fa-solid fa-lock text-zinc-400 text-xs"></i>
+                Transaksi dienkripsi secara aman &amp; garansi uang kembali.
               </p>
+            </div>
+
+            {/* 3 Badges below card */}
+            <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-zinc-600 text-center">
+              <div className="bg-zinc-100 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1">
+                <i className="fa-solid fa-wifi text-zinc-500 text-base"></i>
+                <span>High-Speed 100Mbps</span>
+              </div>
+              <div className="bg-zinc-100 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1">
+                <i className="fa-solid fa-mug-hot text-zinc-500 text-base"></i>
+                <span>Free Flow Espresso</span>
+              </div>
+              <div className="bg-zinc-100 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1">
+                <i className="fa-solid fa-tv text-zinc-500 text-base"></i>
+                <span>4K Presentation Display</span>
+              </div>
             </div>
           </div>
         </form>

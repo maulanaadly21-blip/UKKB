@@ -5,8 +5,6 @@ import RoomModal from '../../components/admin/RoomModal';
 import Badge from '../../components/common/Badge';
 import api from '../../api/axios';
 import { useNotification } from '../../context/NotificationContext';
-import { getImageUrl } from '../../utils/image';
-import { Plus, Edit2, Trash2, Layers, Users, Building, Tag } from 'lucide-react';
 import { Space } from '../../types';
 
 const ManageSpacesPage: React.FC = () => {
@@ -22,7 +20,7 @@ const ManageSpacesPage: React.FC = () => {
     try {
       const res = await api.get('/admin/spaces');
       if (res.data && (res.data.status || res.data.statusCode === 200)) {
-        setSpaces(res.data.data || []);
+        setSpaces(res.data.data);
       }
     } catch (err) {
       console.error('Failed to fetch spaces:', err);
@@ -50,15 +48,15 @@ const ManageSpacesPage: React.FC = () => {
     try {
       if (id) {
         await api.put(`/admin/spaces/${id}`, payload);
-        showSuccess('Data space berhasil diperbarui');
+        showSuccess('Space berhasil diperbarui');
       } else {
         await api.post('/admin/spaces', payload);
-        showSuccess('Space ruangan baru berhasil ditambahkan');
+        showSuccess('Space baru berhasil ditambahkan');
       }
       setModalOpen(false);
       fetchSpaces();
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Gagal menyimpan data space');
+      showError(err.response?.data?.message || 'Gagal menyimpan space');
     } finally {
       setSaving(false);
     }
@@ -77,107 +75,75 @@ const ManageSpacesPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="space-y-8 pb-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200">
           <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0F382C] block">
-              KATALOG & INVENTARIS
-            </span>
-            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-              <Layers className="w-6 h-6 text-[#0F382C]" /> Kelola Ruangan & Meja Kerja
+            <span className="studio-badge">SPACE MANAGEMENT</span>
+            <h1 className="text-3xl font-display font-black uppercase text-zinc-900 tracking-tight mt-1 flex items-center gap-2">
+              <i className="fa-solid fa-layer-group text-red-600 text-2xl"></i> KELOLA SPACES &amp; RUANGAN
             </h1>
-            <p className="text-xs text-slate-500">
-              CRUD Personal Desk, Meeting Room, & Private Office beserta foto dan fasilitas
-            </p>
+            <p className="text-xs text-zinc-500 font-medium">Manajemen katalog Workstation, Podcast Pods, Boardrooms, &amp; Studio Suites</p>
           </div>
 
-          <Button variant="primary" icon={Plus} onClick={handleOpenAdd}>
-            Tambah Space Baru
+          <Button variant="primary" icon="fa-solid fa-plus" onClick={handleOpenAdd} className="bg-red-600 hover:bg-red-500 text-white font-display font-bold uppercase tracking-wider shadow-red-glow rounded-2xl py-3 px-5">
+            TAMBAH SPACE BARU &rarr;
           </Button>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-44 bg-slate-200/60 rounded-2xl animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="h-44 bg-zinc-100 rounded-3xl animate-pulse"></div>
             ))}
           </div>
-        ) : spaces.length === 0 ? (
-          <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl space-y-3">
-            <Layers className="w-10 h-10 text-slate-300 mx-auto" />
-            <p className="text-sm font-bold text-slate-700">Belum ada space yang dibuat</p>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Tambahkan meja kerja atau ruangan meeting pertama untuk mulai menerima reservasi pelanggan.
-            </p>
-            <Button variant="primary" size="sm" icon={Plus} onClick={handleOpenAdd}>
-              Tambah Space Sekarang
-            </Button>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {spaces.map((space) => {
-              const photoUrl = getImageUrl(space.foto_url || space.foto || space.foto_ruangan, 'spaces') ||
-                'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80';
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {spaces.map((space) => (
+              <div
+                key={space.id}
+                className="bg-white border border-zinc-200/90 hover:border-zinc-300 rounded-3xl p-6 shadow-soft hover:shadow-studio transition-all duration-300 flex items-start gap-5 justify-between"
+              >
+                <div className="w-28 h-28 rounded-2xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800">
+                  <img 
+                    src={space.foto_url || (space.foto ? (space.foto.startsWith('http') ? space.foto : `http://localhost:5001/uploads/spaces/${space.foto}`) : '/placeholder-space.jpg')} 
+                    alt={space.nama_space} 
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
 
-              return (
-                <div
-                  key={space.id}
-                  className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs hover:shadow-sm transition-all flex items-start gap-4 justify-between"
-                >
-                  <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
-                    <img 
-                      src={photoUrl} 
-                      alt={space.nama_space} 
-                      className="w-full h-full object-cover"
-                      onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                        const target = e.currentTarget;
-                        target.onerror = null;
-                        target.src = 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80';
-                      }}
-                    />
+                <div className="space-y-2 flex-1">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 bg-zinc-950 text-white rounded-lg inline-block">
+                    {space.tipe?.toUpperCase() || 'DESK'}
+                  </span>
+
+                  <h3 className="text-base font-display font-extrabold text-zinc-900 uppercase line-clamp-1">{space.nama_space || space.nama_ruangan}</h3>
+                  <div className="text-sm font-display font-black text-red-600">
+                    Rp {space.harga_per_jam?.toLocaleString('id-ID')} <span className="text-[10px] font-mono font-normal text-zinc-400 uppercase">/ JAM</span>
                   </div>
 
-                  <div className="space-y-1.5 flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="emerald" size="xs">
-                        {space.tipe?.toUpperCase() || 'DESK'}
-                      </Badge>
-                      <span className="text-[10px] text-slate-400 font-mono">ID #{space.id}</span>
-                    </div>
-
-                    <h3 className="text-sm font-extrabold text-slate-900 truncate">
-                      {space.nama_space || space.nama_ruangan}
-                    </h3>
-                    <p className="text-xs font-black text-[#0F382C]">
-                      Rp {space.harga_per_jam?.toLocaleString('id-ID')} / jam
-                    </p>
-
-                    <div className="flex items-center gap-3 text-xs text-slate-500 font-medium pt-1">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5" /> Kapasitas: {space.kapasitas} Orang
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 shrink-0">
-                    <button
-                      onClick={() => handleOpenEdit(space)}
-                      className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-                      title="Edit Space"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteSpace(space.id)}
-                      className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                      title="Hapus Space"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono font-medium pt-1">
+                    <span className="flex items-center gap-1">
+                      <i className="fa-solid fa-users text-red-500 text-xs"></i> {space.kapasitas} KAPASITAS
+                    </span>
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="flex flex-col gap-2 shrink-0">
+                  <button
+                    onClick={() => handleOpenEdit(space)}
+                    className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <i className="fa-solid fa-pen-to-square text-sm"></i>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteSpace(space.id)}
+                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <i className="fa-solid fa-trash-can text-sm"></i>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -194,3 +160,4 @@ const ManageSpacesPage: React.FC = () => {
 };
 
 export default ManageSpacesPage;
+

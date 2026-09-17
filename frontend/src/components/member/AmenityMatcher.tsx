@@ -1,5 +1,4 @@
 import React from 'react';
-import { SlidersHorizontal, Check, RefreshCw } from 'lucide-react';
 
 interface AmenityItem {
   id: string;
@@ -42,16 +41,16 @@ const AmenityMatcher: React.FC<AmenityMatcherProps> = ({
     <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-soft mb-8">
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-5 h-5 text-emerald-700" />
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-            Workspace Amenity Matcher & Filter
+          <i className="fa-solid fa-sliders text-red-600 text-base"></i>
+          <h3 className="text-sm font-display font-extrabold text-slate-900 uppercase tracking-wider">
+            Workspace Amenity Matcher &amp; Filter
           </h3>
         </div>
         <button
           onClick={onResetFilters}
           className="text-xs font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-1 hover:underline cursor-pointer"
         >
-          <RefreshCw className="w-3.5 h-3.5" /> Reset Filter
+          <i className="fa-solid fa-rotate-right text-xs"></i> Reset Filter
         </button>
       </div>
 
@@ -73,7 +72,7 @@ const AmenityMatcher: React.FC<AmenityMatcherProps> = ({
                 onClick={() => setSelectedType(type.id)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   selectedType === type.id
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-zinc-950 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -97,13 +96,13 @@ const AmenityMatcher: React.FC<AmenityMatcherProps> = ({
                   onClick={() => toggleAmenity(item.label)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-xs'
+                      ? 'bg-red-50 border-red-500 text-red-900 shadow-xs'
                       : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
                 >
                   <span>{item.icon}</span>
                   <span>{item.label}</span>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  {isSelected && <i className="fa-solid fa-check text-red-600 text-xs"></i>}
                 </button>
               );
             })}

@@ -1,5 +1,4 @@
 import React, { useState, FormEvent } from 'react';
-import { QrCode, Search, CheckCircle, ArrowRight } from 'lucide-react';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
 import Button from '../common/Button';
@@ -27,14 +26,10 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (!searchCode.trim()) return;
-    const query = searchCode.trim().toLowerCase();
     const found = reservations.find(
       (r) =>
-        (r.kode_reservasi && r.kode_reservasi.toLowerCase().includes(query)) ||
-        (r.kode_booking && r.kode_booking.toLowerCase().includes(query)) ||
-        (String(r.id) === query) ||
-        (r.nama_pemesan && r.nama_pemesan.toLowerCase().includes(query)) ||
-        (r.member?.nama_member && r.member.nama_member.toLowerCase().includes(query))
+        (r.kode_reservasi && r.kode_reservasi.toLowerCase() === searchCode.trim().toLowerCase()) ||
+        (r.kode_booking && r.kode_booking.toLowerCase() === searchCode.trim().toLowerCase())
     );
     setSelectedBooking(found || null);
   };
@@ -47,9 +42,9 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
             placeholder="Ketik / Scan Kode Pemesanan (e.g. RES-20260903-...)"
             value={searchCode}
             onChange={(e) => setSearchCode(e.target.value)}
-            icon={QrCode}
+            icon="fa-solid fa-qrcode"
           />
-          <Button type="submit" variant="primary" icon={Search}>
+          <Button type="submit" variant="primary" icon="fa-solid fa-magnifying-glass">
             Cari
           </Button>
         </form>
@@ -59,7 +54,7 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div>
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Kode Reservasi</span>
-                <span className="text-base font-extrabold text-emerald-800 font-mono">
+                <span className="text-base font-extrabold text-red-600 font-mono">
                   {selectedBooking.kode_reservasi || selectedBooking.kode_booking}
                 </span>
               </div>
@@ -88,11 +83,11 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
             </div>
 
             <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
-              {(selectedBooking.status === 'disetujui' || selectedBooking.status === 'dikonfirmasi' || selectedBooking.status === 'belum_dikonfirm') && (
+              {(selectedBooking.status === 'dikonfirmasi' || selectedBooking.status === 'belum_dikonfirm') && (
                 <Button
                   variant="primary"
                   size="sm"
-                  icon={CheckCircle}
+                  icon="fa-solid fa-circle-check"
                   onClick={() => {
                     onCheckIn(selectedBooking.id);
                     setSelectedBooking(null);
@@ -106,7 +101,7 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
                 <Button
                   variant="secondary"
                   size="sm"
-                  icon={ArrowRight}
+                  icon="fa-solid fa-arrow-right"
                   onClick={() => {
                     onCheckOut(selectedBooking.id);
                     setSelectedBooking(null);

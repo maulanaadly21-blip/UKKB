@@ -7,7 +7,7 @@ export interface MemberData {
   telp?: string;
   foto?: string;
   poin?: number;
-  tipe_membership?: 'reguler' | 'vip' | 'corporate';
+  tipe_membership?: 'reguler' | 'vip';
 }
 
 export interface SpaceOwnerData {
@@ -23,13 +23,10 @@ export interface User {
   username: string;
   role: 'member' | 'admin_space' | 'app_maker';
   nama?: string;
-  nama_member?: string;
-  nama_pemilik?: string;
   email?: string;
-  no_hp?: string;
-  telp?: string;
   foto_profil?: string;
-  foto?: string;
+  telp?: string;
+  no_hp?: string;
   member?: MemberData | null;
   space_owner?: SpaceOwnerData | null;
   spaceOwner?: SpaceOwnerData | null;
@@ -54,7 +51,6 @@ export interface Space {
   rating?: number;
   review_count?: number;
   lokasi?: string;
-  id_owner?: number;
 }
 
 export interface Discount {
@@ -64,10 +60,6 @@ export interface Discount {
   tanggal_awal: string;
   tanggal_akhir: string;
   is_active?: boolean;
-  kode_promo?: string;
-  persen_diskon?: number;
-  tanggal_mulai?: string;
-  tanggal_berakhir?: string;
 }
 
 export type PromoDiskon = Discount;
@@ -90,7 +82,7 @@ export interface Reservation {
   total_harga_awal?: number;
   potongan_diskon?: number;
   total_bayar: number;
-  status: 'belum_dikonfirm' | 'disetujui' | 'aktif' | 'selesai' | 'dibatalkan' | string;
+  status: 'belum_dikonfirm' | 'aktif' | 'selesai' | 'dibatalkan' | string;
   kode_promo?: string;
   qrCodeDataUrl?: string;
   space?: Space;
@@ -106,19 +98,18 @@ export interface ApiResponse<T = any> {
   timestamp?: string;
 }
 
+export interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  login: (token: string, user: User) => void;
+  logout: () => void;
+  updateUser: (updatedUser: Partial<User>) => void;
+}
+
 export interface Amenity {
   id: string;
   label: string;
   icon?: string;
-}
-
-export interface MakerData {
-  id?: number;
-  name: string;
-  username: string;
-  email: string;
-  app_key: string;
-  total_spaces?: number;
-  total_members?: number;
-  total_reservations?: number;
 }

@@ -4,7 +4,6 @@ import Button from '../../components/common/Button';
 import DiscountModal from '../../components/admin/DiscountModal';
 import api from '../../api/axios';
 import { useNotification } from '../../context/NotificationContext';
-import { Tag, Plus, Edit2, Trash2, Calendar, Percent } from 'lucide-react';
 import { Discount } from '../../types';
 
 const ManageDiscountsPage: React.FC = () => {
@@ -20,7 +19,7 @@ const ManageDiscountsPage: React.FC = () => {
     try {
       const res = await api.get('/admin/diskon');
       if (res.data && (res.data.status || res.data.statusCode === 200)) {
-        setDiscounts(res.data.data || []);
+        setDiscounts(res.data.data);
       }
     } catch (err) {
       console.error('Failed to fetch discounts:', err);
@@ -75,85 +74,66 @@ const ManageDiscountsPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="space-y-8 pb-12">
+        <div className="flex items-center justify-between pb-6 border-b border-zinc-200">
           <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0F382C] block">
-              PROMO & VOUCHER
-            </span>
-            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-              <Tag className="w-6 h-6 text-[#0F382C]" /> Kelola Kode Promo & Diskon Event
+            <span className="studio-badge">VOUCHER MANAGEMENT</span>
+            <h1 className="text-3xl font-display font-black uppercase text-zinc-900 tracking-tight mt-1 flex items-center gap-2">
+              <i className="fa-solid fa-tag text-red-600 text-2xl"></i> KELOLA PROMO &amp; DISKON
             </h1>
-            <p className="text-xs text-slate-500">
-              CRUD kode promo, persentase potongan harga, dan periode tanggal berlaku
-            </p>
+            <p className="text-xs text-zinc-500 font-medium">Atur voucher diskon, persentase potongan harga, dan periode aktif Studio Eleven</p>
           </div>
 
-          <Button variant="primary" icon={Plus} onClick={handleOpenAdd}>
-            Buat Promo Baru
+          <Button variant="primary" icon="fa-solid fa-plus" onClick={handleOpenAdd} className="bg-red-600 hover:bg-red-500 text-white font-display font-bold uppercase tracking-wider shadow-red-glow rounded-2xl py-3 px-5">
+            BUAT PROMO BARU &rarr;
           </Button>
         </div>
 
         {loading ? (
           <div className="space-y-3">
             {[1, 2].map((i) => (
-              <div key={i} className="h-24 bg-slate-200/60 rounded-2xl animate-pulse"></div>
+              <div key={i} className="h-24 bg-zinc-100 rounded-3xl animate-pulse"></div>
             ))}
           </div>
-        ) : discounts.length === 0 ? (
-          <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl space-y-3">
-            <Tag className="w-10 h-10 text-slate-300 mx-auto" />
-            <p className="text-sm font-bold text-slate-700">Belum ada promo aktif</p>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Buat kode promo event untuk memberikan potongan harga khusus kepada member.
-            </p>
-            <Button variant="primary" size="sm" icon={Plus} onClick={handleOpenAdd}>
-              Buat Promo Pertama
-            </Button>
-          </div>
         ) : (
-          <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-2xs">
+          <div className="overflow-x-auto border border-zinc-200 rounded-3xl bg-white shadow-soft">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-zinc-950 text-zinc-300 font-display font-bold uppercase tracking-wider border-b border-zinc-800">
                 <tr>
-                  <th className="px-4 py-3">Nama / Kode Promo</th>
-                  <th className="px-4 py-3">Persentase Diskon</th>
-                  <th className="px-4 py-3">Tanggal Mulai</th>
-                  <th className="px-4 py-3">Tanggal Berakhir</th>
-                  <th className="px-4 py-3 text-right">Aksi</th>
+                  <th className="px-5 py-4">NAMA / KODE DISKON</th>
+                  <th className="px-5 py-4">PERSENTASE DISKON</th>
+                  <th className="px-5 py-4">TANGGAL AWAL</th>
+                  <th className="px-5 py-4">TANGGAL AKHIR</th>
+                  <th className="px-5 py-4 text-right">AKSI</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium">
+              <tbody className="divide-y divide-zinc-100 font-medium">
                 {discounts.map((d: any) => (
-                  <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <span className="font-mono font-bold text-[#0F382C] text-sm bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                        {d.nama_diskon || d.kode_promo}
-                      </span>
+                  <tr key={d.id} className="hover:bg-zinc-50 transition-colors">
+                    <td className="px-5 py-4 font-mono font-bold text-red-600 text-sm tracking-wider">
+                      {d.nama_diskon || d.kode_promo}
                     </td>
-                    <td className="px-4 py-3 font-extrabold text-slate-900">
+                    <td className="px-5 py-4 font-display font-black text-zinc-900 text-base">
                       {d.persentase_diskon || d.persen_diskon}% OFF
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-5 py-4 font-mono text-zinc-600">
                       {d.tanggal_awal ? new Date(d.tanggal_awal).toLocaleDateString('id-ID') : (d.tanggal_mulai || '-')}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-5 py-4 font-mono text-zinc-600">
                       {d.tanggal_akhir ? new Date(d.tanggal_akhir).toLocaleDateString('id-ID') : (d.tanggal_berakhir || '-')}
                     </td>
-                    <td className="px-4 py-3 text-right space-x-1">
+                    <td className="px-5 py-4 text-right space-x-1">
                       <button
                         onClick={() => handleOpenEdit(d)}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg cursor-pointer"
-                        title="Edit Promo"
+                        className="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <i className="fa-solid fa-pen-to-square text-sm"></i>
                       </button>
                       <button
                         onClick={() => handleDeleteDiscount(d.id)}
-                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg cursor-pointer"
-                        title="Hapus Promo"
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <i className="fa-solid fa-trash-can text-sm"></i>
                       </button>
                     </td>
                   </tr>
@@ -176,3 +156,4 @@ const ManageDiscountsPage: React.FC = () => {
 };
 
 export default ManageDiscountsPage;
+

@@ -1,16 +1,14 @@
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Printer, Building2, Calendar, User, Clock, MapPin, CheckCircle2 } from 'lucide-react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import Badge from '../common/Badge';
-import StatusBadge from '../admin/StatusBadge';
 import { Reservation } from '../../types';
 
 interface ETicketModalProps {
   isOpen: boolean;
   onClose: () => void;
-  reservation: Reservation | any | null;
+  reservation: Reservation | null;
 }
 
 const ETicketModal: React.FC<ETicketModalProps> = ({ isOpen, onClose, reservation }) => {
@@ -20,90 +18,81 @@ const ETicketModal: React.FC<ETicketModalProps> = ({ isOpen, onClose, reservatio
     window.print();
   };
 
-  const bookingCode = reservation.kode_booking || reservation.kode_reservasi || `RES-${reservation.id}`;
-  const spaceName = reservation.space?.nama_space || reservation.space_name || reservation.nama_space || reservation.nama_ruangan || 'Workspace';
-  const locationName = reservation.space?.nama_coworking || reservation.nama_coworking || 'Moklet Hub Coworking';
-  const pemesanName = reservation.member?.nama_member || reservation.nama_pemesan || 'Member';
-  const tanggal = reservation.tanggal_reservasi || '';
-  const jamMulai = reservation.jam_mulai || '09:00';
-  const jamSelesai = reservation.jam_selesai || `${parseInt(jamMulai)+ (reservation.durasi_jam || 1)}:00`;
-  const durasi = reservation.durasi_jam || 1;
-  const total = reservation.total_bayar || 0;
-
   const qrPayload = JSON.stringify({
-    kode_booking: bookingCode,
-    id_reservasi: reservation.id,
-    pemesan: pemesanName,
-    space: spaceName,
-    tanggal: tanggal,
-    jam: `${jamMulai} - ${jamSelesai}`
+    code: reservation.kode_reservasi || reservation.kode_booking,
+    pemesan: reservation.nama_pemesan,
+    space: reservation.nama_ruangan || reservation.nama_space,
+    date: reservation.tanggal_reservasi,
+    time: `${reservation.jam_mulai} - ${reservation.jam_selesai}`
   });
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Digital E-Ticket Coworking Space" maxWidth="max-w-xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Digital E-Ticket Studio Eleven" maxWidth="max-w-xl">
       <div id="printable-eticket" className="space-y-6">
-        {/* E-Ticket Header */}
-        <div className="bg-[#0F382C] text-white rounded-2xl p-6 relative overflow-hidden shadow-soft">
-          <div className="flex items-center justify-between border-b border-emerald-800/80 pb-4 mb-4">
+        {/* E-Ticket Ticket Header */}
+        <div className="bg-zinc-950 text-white rounded-3xl p-6 relative overflow-hidden shadow-studio border border-zinc-800">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-bold">
-                <Building2 className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center font-display font-extrabold shadow-red-glow">
+                S11
               </div>
-              <span className="font-extrabold text-base tracking-tight">Smart Space Digital Pass</span>
+              <span className="font-display font-extrabold text-base tracking-wider uppercase">STUDIO ELEVEN E-PASS</span>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-800 text-emerald-100 border border-emerald-700 uppercase">
-              • {reservation.status || 'Aktif'}
+            <span className="text-[10px] font-mono font-bold uppercase px-3 py-1 bg-red-950 text-red-400 border border-red-800 rounded-full">
+              {reservation.status?.toUpperCase() || 'DIKONFIRMASI'}
             </span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-widest text-emerald-200 font-semibold block">
-              Kode Reservasi Resmi (Booking Ref)
+            <span className="text-[10px] uppercase font-mono tracking-widest text-zinc-400 font-semibold block">
+              KODE PEMESANAN RESMI (BOOKING REF)
             </span>
-            <p className="text-2xl font-black text-white font-mono tracking-wider">
-              {bookingCode}
+            <p className="text-2xl font-extrabold text-red-500 font-mono tracking-wider">
+              {reservation.kode_reservasi || reservation.kode_booking}
             </p>
           </div>
         </div>
 
         {/* QR Code & Location Section */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 justify-between">
-          <div className="flex flex-col items-center justify-center p-3 bg-slate-50 border border-slate-200 rounded-2xl shrink-0">
+        <div className="bg-white border-2 border-dashed border-zinc-200 rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 justify-between">
+          <div className="flex flex-col items-center justify-center p-4 bg-zinc-950 border border-zinc-800 rounded-2xl shrink-0">
             {reservation.qrCodeDataUrl ? (
-              <img src={reservation.qrCodeDataUrl} alt="QR Code E-Ticket" className="w-40 h-40 object-contain" />
+              <img src={reservation.qrCodeDataUrl} alt="QR Code E-Ticket" className="w-44 h-44 object-contain" />
             ) : (
-              <QRCodeSVG value={qrPayload} size={160} level="H" includeMargin={true} fgColor="#0F382C" />
+              <QRCodeSVG value={qrPayload} size={170} level="H" includeMargin={true} fgColor="#DC2626" />
             )}
-            <span className="text-[10px] font-bold text-slate-500 tracking-wider mt-2 uppercase">
-              Scan di Pintu / Resepsionis
+            <span className="text-[10px] font-mono font-bold text-zinc-400 tracking-wider mt-2 uppercase">
+              SCAN TURNSTILE GATE PASS
             </span>
           </div>
 
-          <div className="space-y-3.5 flex-1 w-full text-xs">
+          <div className="space-y-3.5 flex-1 w-full text-sm font-medium">
             <div className="flex items-start gap-2.5">
-              <User className="w-4 h-4 text-[#0F382C] mt-0.5 shrink-0" />
+              <i className="fa-solid fa-user text-red-600 text-sm mt-0.5 shrink-0"></i>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Nama Pemesan</span>
-                <span className="font-bold text-slate-900 text-sm">{pemesanName}</span>
+                <span className="text-[10px] uppercase font-mono text-zinc-400 block">NAMA PEMESAN</span>
+                <span className="font-display font-bold uppercase text-zinc-900">{reservation.nama_pemesan || 'Member'}</span>
               </div>
             </div>
 
             <div className="flex items-start gap-2.5">
-              <Building2 className="w-4 h-4 text-[#0F382C] mt-0.5 shrink-0" />
+              <i className="fa-solid fa-building text-red-600 text-sm mt-0.5 shrink-0"></i>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Ruangan / Meja</span>
-                <span className="font-bold text-slate-900">{spaceName}</span>
-                <span className="text-slate-500 block">({locationName})</span>
+                <span className="text-[10px] uppercase font-mono text-zinc-400 block">RUANGAN / WORKSTATION</span>
+                <span className="font-display font-bold uppercase text-zinc-900">{reservation.nama_ruangan || reservation.nama_space}</span>
+                <span className="text-xs text-zinc-500 block font-mono">({reservation.nama_coworking || 'Studio Eleven Flagship'})</span>
               </div>
             </div>
 
             <div className="flex items-start gap-2.5">
-              <Calendar className="w-4 h-4 text-[#0F382C] mt-0.5 shrink-0" />
+              <i className="fa-solid fa-calendar-days text-red-600 text-sm mt-0.5 shrink-0"></i>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Jadwal Akses</span>
-                <span className="font-bold text-slate-900">{tanggal}</span>
-                <span className="text-emerald-800 font-semibold block">
-                  {jamMulai} - {jamSelesai} ({durasi} Jam)
+                <span className="text-[10px] uppercase font-mono text-zinc-400 block">TANGGAL &amp; JAM AKSES</span>
+                <span className="font-display font-bold text-zinc-900">{reservation.tanggal_reservasi}</span>
+                <span className="text-xs text-red-600 font-mono font-bold block">
+                  {reservation.jam_mulai} - {reservation.jam_selesai} ({reservation.durasi_jam} Jam)
                 </span>
               </div>
             </div>
@@ -111,20 +100,20 @@ const ETicketModal: React.FC<ETicketModalProps> = ({ isOpen, onClose, reservatio
         </div>
 
         {/* Pricing Summary */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2 text-xs">
-          <div className="flex justify-between text-slate-600">
-            <span>Status Transaksi:</span>
-            <span className="font-bold text-emerald-800 capitalize">{reservation.status || 'Terkonfirmasi'}</span>
+        <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 space-y-2 text-xs">
+          <div className="flex justify-between text-zinc-600 font-medium">
+            <span>Total Harga Awal:</span>
+            <span className="font-bold">Rp {(reservation.total_harga_awal || 0).toLocaleString('id-ID')}</span>
           </div>
-          {reservation.kode_promo && (
-            <div className="flex justify-between text-emerald-800 font-semibold">
-              <span>Voucher Diskon:</span>
-              <span className="font-mono">{reservation.kode_promo}</span>
+          {(reservation.potongan_diskon || 0) > 0 && (
+            <div className="flex justify-between text-red-600 font-bold">
+              <span>Potongan Promo ({reservation.kode_promo || 'Voucher'}):</span>
+              <span>- Rp {(reservation.potongan_diskon || 0).toLocaleString('id-ID')}</span>
             </div>
           )}
-          <div className="flex justify-between text-slate-900 font-extrabold text-sm border-t border-slate-200 pt-2">
-            <span>Total Biaya:</span>
-            <span className="text-[#0F382C]">Rp {total.toLocaleString('id-ID')}</span>
+          <div className="flex justify-between text-zinc-900 font-display font-black text-sm border-t border-zinc-200 pt-2">
+            <span>TOTAL DIBAYAR:</span>
+            <span className="text-red-600">Rp {(reservation.total_bayar || 0).toLocaleString('id-ID')}</span>
           </div>
         </div>
 
@@ -133,9 +122,14 @@ const ETicketModal: React.FC<ETicketModalProps> = ({ isOpen, onClose, reservatio
           <Button variant="outline" onClick={onClose}>
             Tutup
           </Button>
-          <Button variant="primary" icon={Printer} onClick={handlePrint}>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider bg-red-600 hover:bg-red-500 text-white shadow-red-glow transition-all cursor-pointer flex items-center gap-2"
+          >
+            <i className="fa-solid fa-print text-sm"></i>
             Cetak Digital E-Ticket
-          </Button>
+          </button>
         </div>
       </div>
     </Modal>

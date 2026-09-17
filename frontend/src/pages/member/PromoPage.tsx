@@ -3,17 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import MemberLayout from '../../components/layout/MemberLayout';
 import { useNotification } from '../../context/NotificationContext';
 import api from '../../api/axios';
-import {
-  Copy,
-  Check,
-  Sparkles,
-  Calendar,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-  Tag
-} from 'lucide-react';
 import { Discount } from '../../types';
 
 const PromoPage: React.FC = () => {
@@ -27,12 +16,12 @@ const PromoPage: React.FC = () => {
     const fetchPromos = async () => {
       setLoading(true);
       try {
-        const res = await api.get('/diskon/active');
-        if (res.data && (res.data.status || res.data.statusCode === 200)) {
-          setPromos(res.data.data || []);
+        const res = await api.get('/diskon');
+        if (res.data && res.data.status) {
+          setPromos(res.data.data);
         }
       } catch (err) {
-        console.error('Failed to fetch active promos:', err);
+        console.error('Failed to fetch promo list:', err);
       } finally {
         setLoading(false);
       }
@@ -55,123 +44,140 @@ const PromoPage: React.FC = () => {
     navigate('/ruang');
   };
 
-  const displayPromos: Discount[] = promos.length > 0 ? promos : [
+  const displayPromos: any[] = promos.length > 0 ? promos : [
     {
       id: 1,
-      nama_diskon: 'PROMOAGUSTUS',
-      persentase_diskon: 20,
-      tanggal_awal: '2026-08-01T00:00:00Z',
-      tanggal_akhir: '2026-12-31T23:59:59Z'
+      kode_promo: 'PROMOCOWORKING',
+      persen_diskon: 20,
+      minimal_durasi_jam: 2,
+      tanggal_mulai: '2026-09-01',
+      tanggal_berakhir: '2026-10-30',
+      kuota: 50,
+      status: 'aktif',
+      nama_coworking: 'Studio Eleven Flagship SCBD'
     },
     {
       id: 2,
-      nama_diskon: 'DISKONHEMAT20',
-      persentase_diskon: 20,
-      tanggal_awal: '2026-08-01T00:00:00Z',
-      tanggal_akhir: '2026-12-31T23:59:59Z'
+      kode_promo: 'STUDIOBOOST20',
+      persen_diskon: 15,
+      minimal_durasi_jam: 1,
+      tanggal_mulai: '2026-09-01',
+      tanggal_berakhir: '2026-10-30',
+      kuota: 100,
+      status: 'aktif',
+      nama_coworking: 'Kuningan Creative Hub'
     },
     {
       id: 3,
-      nama_diskon: 'SMARTWORK15',
-      persentase_diskon: 15,
-      tanggal_awal: '2026-08-01T00:00:00Z',
-      tanggal_akhir: '2026-12-31T23:59:59Z'
+      kode_promo: 'CREATIVEVIP30',
+      persen_diskon: 30,
+      minimal_durasi_jam: 3,
+      tanggal_mulai: '2026-09-01',
+      tanggal_berakhir: '2026-10-30',
+      kuota: 25,
+      status: 'aktif',
+      nama_coworking: 'Studio Eleven Flagship SCBD'
     }
   ];
 
   return (
     <MemberLayout>
-      <div className="space-y-10 pb-12">
-        {/* Header Banner */}
-        <div className="bg-[#0F382C] rounded-3xl p-8 sm:p-12 text-white shadow-lg relative overflow-hidden">
-          <div className="relative z-10 max-w-2xl space-y-3">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-300 bg-white/10 px-3.5 py-1.5 rounded-full inline-block backdrop-blur-md">
-              Voucher & Promo Hemat
+      <div className="space-y-10 pb-16">
+        {/* Header Banner - Dark Studio Theme */}
+        <div className="bg-zinc-950 rounded-3xl p-8 sm:p-14 text-white shadow-studio relative overflow-hidden border border-zinc-800">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 max-w-2xl space-y-4">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-red-400 bg-red-950/80 border border-red-800/60 px-3.5 py-1.5 rounded-full inline-flex items-center gap-2">
+              <i className="fa-solid fa-tag text-red-500 text-xs"></i>
+              STUDIO PROMO &amp; VOUCHER PASS
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Katalog Promo & Potongan Diskon
+            <h1 className="text-3xl sm:text-5xl font-display font-black tracking-tight uppercase leading-none">
+              DAPATKAN <span className="text-red-500">DISKON</span> SPESIAL
             </h1>
-            <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed font-normal">
-              Gunakan kode voucher aktif saat checkout untuk menikmati potongan harga langsung pada reservasi Personal Desk, Meeting Room, dan Private Office.
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-medium">
+              Gunakan kode voucher aktif di bawah ini saat checkout untuk mendapatkan potongan harga hingga 30% untuk seluruh workstation, audio pods, &amp; executive boardrooms.
             </p>
           </div>
         </div>
 
         {/* Promo Grid */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-              <Tag className="w-5 h-5 text-[#0F382C]" /> Voucher Aktif ({displayPromos.length})
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">
-              Salin kode & pasang saat reservasi
-            </span>
+            <div>
+              <div className="text-xs font-mono font-bold text-red-600 uppercase tracking-widest mb-1">- ACTIVE VOUCHERS</div>
+              <h2 className="text-2xl font-display font-extrabold text-zinc-900 uppercase">
+                VOUCHER POPULER ({displayPromos.length})
+              </h2>
+            </div>
+            <span className="text-xs font-mono text-zinc-500 hidden sm:inline">KLIK SALIN UNTUK GUNAKAN VOUCHER</span>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-64 bg-slate-100 rounded-2xl animate-pulse"></div>
+                <div key={i} className="h-64 bg-zinc-100 rounded-3xl animate-pulse"></div>
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {displayPromos.map((promo) => {
-                const code = promo.nama_diskon || promo.kode_promo || 'PROMO';
-                const pct = promo.persentase_diskon || promo.persen_diskon || 20;
-                const dateStart = promo.tanggal_awal ? new Date(promo.tanggal_awal).toLocaleDateString('id-ID') : (promo.tanggal_mulai || '-');
-                const dateEnd = promo.tanggal_akhir ? new Date(promo.tanggal_akhir).toLocaleDateString('id-ID') : (promo.tanggal_berakhir || '-');
-
+                const code = promo.kode_promo || promo.nama_diskon || '';
+                const pct = promo.persen_diskon || promo.persentase_diskon || 20;
                 return (
                   <div
                     key={promo.id}
-                    className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-4 group relative overflow-hidden"
+                    className="bg-white border border-zinc-200/90 hover:border-zinc-300 rounded-3xl p-6 shadow-soft hover:shadow-studio transition-all duration-300 flex flex-col justify-between space-y-5 group relative overflow-hidden"
                   >
                     {/* Top Discount Tag */}
                     <div className="flex items-start justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-[#E6F4F1] border border-emerald-200 text-[#0F382C] flex items-center justify-center font-extrabold text-lg">
-                        {pct}%
+                      <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 text-white flex flex-col items-center justify-center font-display font-black text-xl shadow-studio">
+                        <span className="text-red-500 text-lg leading-none">{pct}%</span>
+                        <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">OFF</span>
                       </div>
-                      <span className="bg-emerald-100 text-emerald-800 text-[10px] uppercase font-bold px-2.5 py-1 rounded-full">
-                        Potongan {pct}%
+                      <span className="bg-red-50 text-red-600 border border-red-200 text-[10px] uppercase font-mono font-bold px-3 py-1 rounded-full">
+                        HEMAT {pct}%
                       </span>
                     </div>
 
                     {/* Promo Details */}
                     <div className="space-y-2">
-                      <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                        Coworking Space Promo
+                      <p className="text-[11px] font-mono text-zinc-400 font-bold uppercase tracking-wider">
+                        {promo.nama_coworking || 'STUDIO ELEVEN WORKSPACES'}
                       </p>
-                      <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-[#0F382C] transition-colors">
-                        Hemat {pct}% untuk Semua Tipe Ruang
+                      <h3 className="text-lg font-display font-extrabold text-zinc-900 uppercase group-hover:text-red-600 transition-colors">
+                        DISKON {pct}% SESI WORKSPACE
                       </h3>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
-                        <span className="flex items-center gap-1 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" /> Berlaku s/d {dateEnd}
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 font-medium pt-1">
+                        <span className="flex items-center gap-1">
+                          <i className="fa-solid fa-clock text-red-500 text-xs"></i> Min. {promo.minimal_durasi_jam || 1} Jam
+                        </span>
+                        <span className="flex items-center gap-1 font-mono">
+                          <i className="fa-solid fa-calendar text-red-500 text-xs"></i> s/d {promo.tanggal_berakhir || promo.tanggal_akhir || '2026-12-31'}
                         </span>
                       </div>
                     </div>
 
                     {/* Voucher Code Box */}
-                    <div className="pt-3 border-t border-slate-100 space-y-3">
-                      <div className="flex items-center justify-between bg-slate-50 border border-dashed border-slate-300 rounded-xl p-2.5">
-                        <span className="font-mono font-bold text-sm text-[#0F382C] px-2">
+                    <div className="pt-4 border-t border-zinc-100 space-y-3">
+                      <div className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-2.5">
+                        <span className="font-mono font-bold text-sm text-white px-2 tracking-wider">
                           {code}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleCopyCode(code)}
-                          className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-display font-bold uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer shadow-red-glow"
                         >
                           {copiedCode === code ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              <span className="text-emerald-700">Tersalin!</span>
+                              <i className="fa-solid fa-check text-xs text-white"></i>
+                              <span>TERSALIN</span>
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5" />
-                              <span>Salin</span>
+                              <i className="fa-solid fa-copy text-xs"></i>
+                              <span>SALIN</span>
                             </>
                           )}
                         </button>
@@ -180,10 +186,10 @@ const PromoPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleUsePromo(code)}
-                        className="w-full py-2.5 bg-[#0F382C] hover:bg-[#0b2b22] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer"
+                        className="w-full py-3 bg-zinc-950 hover:bg-black text-white rounded-2xl text-xs font-display font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer border border-zinc-800"
                       >
-                        <span>Gunakan Kode Ini</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <span>GUNAKAN PROMO INI</span>
+                        <i className="fa-solid fa-arrow-right text-red-500 text-xs"></i>
                       </button>
                     </div>
                   </div>
@@ -194,34 +200,34 @@ const PromoPage: React.FC = () => {
         </div>
 
         {/* Benefits Info Box */}
-        <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200/80 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white text-[#0F382C] shadow-2xs border border-slate-200 flex items-center justify-center shrink-0">
-              <Zap className="w-5 h-5 text-amber-500 fill-amber-400" />
+        <div className="bg-zinc-950 text-white rounded-3xl p-8 border border-zinc-800 grid grid-cols-1 md:grid-cols-3 gap-6 shadow-studio">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 text-red-500 flex items-center justify-center shrink-0">
+              <i className="fa-solid fa-bolt text-red-500 text-xl"></i>
             </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-900">Potongan Otomatis</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Diskon terhitung langsung saat Anda memasukkan kode di form reservasi.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white text-[#0F382C] shadow-2xs border border-slate-200 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-900">Harga Transparan</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Rincian harga awal, potongan promo, dan total bayar tertera jelas.</p>
+            <div className="space-y-1">
+              <h4 className="text-sm font-display font-bold uppercase">Potongan Otomatis</h4>
+              <p className="text-xs text-zinc-400 font-medium">Kalkulasi diskon instan saat checkout tanpa prosedur berbelit.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white text-[#0F382C] shadow-2xs border border-slate-200 flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5 text-amber-500 fill-amber-400" />
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 text-red-500 flex items-center justify-center shrink-0">
+              <i className="fa-solid fa-shield-halved text-red-500 text-xl"></i>
             </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-900">Multi-Lokasi</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Voucher dapat digunakan di seluruh meja & ruangan coworking yang tersedia.</p>
+            <div className="space-y-1">
+              <h4 className="text-sm font-display font-bold uppercase">Garansi Tanpa Biaya Tersembunyi</h4>
+              <p className="text-xs text-zinc-400 font-medium">Harga nett transparan sesuai dengan pilihan jam yang dipesan.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 text-red-500 flex items-center justify-center shrink-0">
+              <i className="fa-solid fa-gift text-red-500 text-xl"></i>
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-display font-bold uppercase">Reward Member Pass</h4>
+              <p className="text-xs text-zinc-400 font-medium">Dapatkan status priority pass untuk tiap reservasi berulang.</p>
             </div>
           </div>
         </div>
@@ -231,3 +237,4 @@ const PromoPage: React.FC = () => {
 };
 
 export default PromoPage;
+

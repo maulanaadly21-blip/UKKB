@@ -37,7 +37,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
         <select
           ref={ref}
           className={`w-full bg-white border ${
-            error ? 'border-rose-500 focus:ring-rose-200' : 'border-slate-200 focus:border-emerald-600 focus:ring-emerald-100'
+            error ? 'border-rose-500 focus:ring-rose-200' : 'border-slate-200 focus:border-red-500 focus:ring-red-100'
           } rounded-xl px-4 py-2.5 text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:ring-4 shadow-sm appearance-none pr-10 cursor-pointer ${
             Icon ? 'pl-11' : ''
           } ${className}`}
